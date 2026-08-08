@@ -1,0 +1,7 @@
+Alias /quique-micromarket "C:/Users/HP/Desktop/QuiQue-Micromarket/public"
+
+<Directory "C:/Users/HP/Desktop/QuiQue-Micromarket/public">
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
