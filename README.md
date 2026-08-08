@@ -48,3 +48,11 @@ administrador.
   mantiene un identificador estable para relacionarlos posteriormente y el futuro
   umbral configurable se modelará como configuración administrativa, sin acoplarlo
   a los importes ni a la tabla de usuarios actuales.
+
+## Categorías
+
+Administradores y cajeros activos pueden listar, buscar, crear, editar, activar y
+desactivar categorías de su sucursal desde `Categorías`. No existe eliminación
+física. Los nombres se limpian de espacios repetidos y no pueden duplicarse dentro
+de una misma sucursal. La clave foránea existente en `products.category_id` queda
+preparada para la Etapa 4, sin implementar todavía el módulo de productos.
