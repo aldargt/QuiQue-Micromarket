@@ -15,8 +15,22 @@ MySQL/MariaDB, Blade, Tailwind CSS y JavaScript.
 7. Ejecutar `npm install` y `npm run build` cuando cambien los assets.
 8. Abrir `http://localhost/quique-micromarket`.
 
-La aplicación no permite registro público. La creación y administración de cuentas
-se implementará en la Etapa 2. No hay credenciales predeterminadas en el repositorio.
+La aplicación no permite registro público y no contiene credenciales predeterminadas.
+
+## Administrador inicial
+
+Después de migrar y ejecutar las semillas, crear el único administrador inicial con:
+
+```powershell
+C:\xampp\php\php.exe artisan micromarket:create-admin
+```
+
+El comando solicita nombre, correo y contraseña. La contraseña se captura de forma
+oculta, se confirma y se almacena con el hashing configurado por Laravel. El comando
+se niega a crear un segundo administrador.
+
+La gestión de cajeros queda disponible en `Usuarios` después de iniciar sesión como
+administrador.
 
 ## Decisiones de fundación
 
@@ -28,3 +42,9 @@ se implementará en la Etapa 2. No hay credenciales predeterminadas en el reposi
   trabajará inicialmente con una sola.
 - Ventas y sus relaciones usan borrado restringido para proteger el historial.
 - Cantidades usan tres decimales para contemplar productos por peso; dinero usa dos.
+- La gestión de usuarios solo acepta campos explícitos y asigna el rol Cajero en el
+  backend; un valor de rol manipulado en una petición se ignora.
+- Clientes y participaciones de sorteos no forman parte de estas etapas. La venta
+  mantiene un identificador estable para relacionarlos posteriormente y el futuro
+  umbral configurable se modelará como configuración administrativa, sin acoplarlo
+  a los importes ni a la tabla de usuarios actuales.
