@@ -56,3 +56,15 @@ desactivar categorías de su sucursal desde `Categorías`. No existe eliminació
 física. Los nombres se limpian de espacios repetidos y no pueden duplicarse dentro
 de una misma sucursal. La clave foránea existente en `products.category_id` queda
 preparada para la Etapa 4, sin implementar todavía el módulo de productos.
+
+## Productos
+
+Administradores y cajeros activos pueden listar, buscar, filtrar, crear, editar,
+activar y desactivar productos de su sucursal. El código interno `PRD-XXXXXXXXXXXX`
+se genera en backend y permanece estable; cuando existe un código de barras, este se
+muestra como identificador comercial preferente.
+
+El stock actual se muestra únicamente como información, nace en cero y no se acepta
+desde los formularios de Productos. Cualquier cambio queda reservado para el futuro
+módulo de Inventario. No existen rutas de eliminación, movimientos de inventario,
+POS, ventas ni alertas en esta etapa.
