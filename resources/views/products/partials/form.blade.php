@@ -37,12 +37,12 @@
     </div>
     <div>
         <x-input-label for="purchase_price" value="Precio de compra (Bs)" />
-        <x-text-input id="purchase_price" name="purchase_price" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('purchase_price', isset($product) ? $product->purchase_price : '0.00')" required />
+        <x-text-input id="purchase_price" name="purchase_price" type="number" min="0" step="any" class="mt-1 block w-full" :value="old('purchase_price', isset($product) ? $product->purchase_price : '0.00')" required />
         <x-input-error :messages="$errors->get('purchase_price')" class="mt-2" />
     </div>
     <div>
         <x-input-label for="sale_price" value="Precio de venta (Bs)" />
-        <x-text-input id="sale_price" name="sale_price" type="number" min="0" step="0.01" class="mt-1 block w-full" :value="old('sale_price', isset($product) ? $product->sale_price : '')" required />
+        <x-text-input id="sale_price" name="sale_price" type="number" min="0" step="any" class="mt-1 block w-full" :value="old('sale_price', isset($product) ? $product->sale_price : '')" required />
         <x-input-error :messages="$errors->get('sale_price')" class="mt-2" />
     </div>
     <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
@@ -52,7 +52,7 @@
     </div>
     <div>
         <x-input-label for="minimum_stock" value="Stock mínimo" />
-        <x-text-input id="minimum_stock" name="minimum_stock" type="number" min="0" step="0.001" class="mt-1 block w-full" :value="old('minimum_stock', isset($product) ? $product->minimum_stock : '0')" required />
+        <x-text-input id="minimum_stock" name="minimum_stock" type="number" min="0" step="any" class="mt-1 block w-full" :value="old('minimum_stock', isset($product) ? $product->minimum_stock : '0')" required />
         <x-input-error :messages="$errors->get('minimum_stock')" class="mt-2" />
     </div>
 </div>

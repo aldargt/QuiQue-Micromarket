@@ -57,7 +57,7 @@ class CategoryController extends Controller
     {
         $category->update(['name' => $request->validated('name')]);
 
-        return redirect()->route('categories.edit', $category)->with('status', 'Categoría actualizada correctamente.');
+        return redirect()->route('categories.index')->with('status', 'Categoría actualizada correctamente.');
     }
 
     public function toggle(Category $category): RedirectResponse

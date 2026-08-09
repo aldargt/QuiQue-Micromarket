@@ -15,12 +15,13 @@ class CategoryPolicy
 
     public function create(User $user): bool
     {
-        return $this->hasCategoryAccess($user) && $user->branch_id !== null;
+        return $user->branch_id !== null
+            && $user->hasAnyRole([RoleSlug::Administrator->value]);
     }
 
     public function update(User $user, Category $category): bool
     {
-        return $this->hasCategoryAccess($user)
+        return $user->hasAnyRole([RoleSlug::Administrator->value])
             && $user->branch_id !== null
             && $user->branch_id === $category->branch_id;
     }

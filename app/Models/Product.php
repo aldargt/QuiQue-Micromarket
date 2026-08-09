@@ -7,6 +7,7 @@ use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
@@ -54,6 +55,23 @@ class Product extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function inventoryMovements(): HasMany
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
+    public function hasLowStock(): bool
+    {
+        return bccomp($this->minimum_stock, '0', 3) === 1
+            && bccomp($this->stock, '0', 3) === 1
+            && bccomp($this->stock, $this->minimum_stock, 3) <= 0;
+    }
+
+    public function hasZeroStock(): bool
+    {
+        return bccomp($this->stock, '0', 3) === 0;
     }
 
     public function displayCode(): string

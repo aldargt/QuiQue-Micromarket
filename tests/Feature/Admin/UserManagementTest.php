@@ -92,7 +92,7 @@ class UserManagementTest extends TestCase
             'role_id' => $this->administratorRole->id,
         ]);
 
-        $response->assertRedirect(route('admin.users.edit', $cashier));
+        $response->assertRedirect(route('admin.users.index'))->assertSessionHas('status');
         $cashier->refresh();
         $this->assertSame('Caja Actualizada', $cashier->name);
         $this->assertFalse($cashier->is_active);

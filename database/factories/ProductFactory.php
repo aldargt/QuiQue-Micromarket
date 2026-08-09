@@ -25,7 +25,7 @@ class ProductFactory extends Factory
             'unit' => MeasurementUnit::Unit,
             'purchase_price' => fake()->randomFloat(2, 0, 100),
             'sale_price' => fake()->randomFloat(2, 0, 150),
-            'stock' => fake()->randomFloat(3, 0, 100),
+            'stock' => '0.000',
             'minimum_stock' => fake()->randomFloat(3, 0, 10),
             'expires_at' => null,
             'is_active' => true,

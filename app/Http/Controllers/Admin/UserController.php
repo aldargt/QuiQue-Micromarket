@@ -65,7 +65,7 @@ class UserController extends Controller
     {
         $user->update($request->validated());
 
-        return redirect()->route('admin.users.edit', $user)->with('status', 'Datos del cajero actualizados.');
+        return redirect()->route('admin.users.index')->with('status', 'Usuario actualizado correctamente.');
     }
 
     public function resetPassword(ResetCashierPasswordRequest $request, User $user): RedirectResponse

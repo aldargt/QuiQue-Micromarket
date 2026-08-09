@@ -65,6 +65,26 @@ se genera en backend y permanece estable; cuando existe un código de barras, es
 muestra como identificador comercial preferente.
 
 El stock actual se muestra únicamente como información, nace en cero y no se acepta
-desde los formularios de Productos. Cualquier cambio queda reservado para el futuro
-módulo de Inventario. No existen rutas de eliminación, movimientos de inventario,
-POS, ventas ni alertas en esta etapa.
+desde los formularios de Productos. Cualquier cambio queda reservado para el módulo
+de Inventario. No existen rutas de eliminación de productos.
+
+## Inventario
+
+Inventario es la única vía para modificar `products.stock`. Cada entrada, salida,
+ajuste positivo o ajuste negativo bloquea el producto y registra en una misma
+transacción la cantidad, stock anterior, stock resultante, motivo, observación,
+usuario, sucursal y fecha. No se permite stock negativo ni movimientos sobre
+productos inactivos.
+
+Administrador y Cajero pueden consultar inventario, registrar movimientos manuales
+y revisar el historial de su sucursal. El listado
+muestra stock normal, bajo o agotado y el estado básico del vencimiento, sin modelar
+lotes, FEFO ni alertas externas.
+
+La aplicación usa `APP_TIMEZONE=America/La_Paz`. Laravel, MariaDB configurado con la
+zona del sistema y las vistas trabajan con hora local UTC−4. Los campos numéricos de
+Productos e Inventario usan `step="any"`: las flechas avanzan por unidades y la
+entrada manual conserva dos decimales para precios y tres para cantidades.
+
+En Categorías, el Administrador puede crear, editar y activar/desactivar. El Cajero
+mantiene acceso de consulta y búsqueda, pero recibe 403 en rutas de modificación.

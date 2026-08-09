@@ -38,7 +38,9 @@ class ProductManagementTest extends TestCase
     {
         foreach ([$this->administrator(), $this->cashier()] as $user) {
             $this->actingAs($user)->get(route('products.index'))->assertOk();
-            $this->actingAs($user)->get(route('products.create'))->assertOk();
+            $this->actingAs($user)->get(route('products.create'))
+                ->assertOk()
+                ->assertSee('step="any"', false);
         }
     }
 
@@ -147,7 +149,7 @@ class ProductManagementTest extends TestCase
             'stock' => '999',
             'branch_id' => $otherBranch->id,
             'internal_code' => 'CAMBIO-NO-PERMITIDO',
-        ])->assertRedirect(route('products.edit', $product));
+        ])->assertRedirect(route('products.index'))->assertSessionHas('status');
 
         $product->refresh();
         $this->assertSame('Producto actualizado', $product->name);

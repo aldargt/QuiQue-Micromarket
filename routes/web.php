@@ -3,6 +3,8 @@
 use App\Enums\RoleSlug;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +34,11 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::patch('/products/{product}/toggle', [ProductController::class, 'toggle'])->name('products.toggle');
+
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/movements', [InventoryMovementController::class, 'index'])->name('inventory.movements.index');
+    Route::get('/inventory/{product}/movements/create', [InventoryMovementController::class, 'create'])->name('inventory.movements.create');
+    Route::post('/inventory/{product}/movements', [InventoryMovementController::class, 'store'])->name('inventory.movements.store');
 });
 
 Route::prefix('admin')->name('admin.')->middleware([

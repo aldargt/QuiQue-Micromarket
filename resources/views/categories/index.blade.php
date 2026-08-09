@@ -5,9 +5,11 @@
                 <h1 class="text-2xl font-semibold text-gray-900">Categorías</h1>
                 <p class="mt-1 text-sm text-gray-600">Organiza los productos de {{ Auth::user()->branch?->name ?? 'tu sucursal' }}.</p>
             </div>
-            <a href="{{ route('categories.create') }}" class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2">
-                Crear categoría
-            </a>
+            @if (Auth::user()->hasAnyRole(['administrator']))
+                <a href="{{ route('categories.create') }}" class="inline-flex items-center justify-center rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2">
+                    Crear categoría
+                </a>
+            @endif
         </div>
     </x-slot>
 
@@ -46,7 +48,7 @@
                                 <td class="px-6 py-4 font-medium text-gray-900">{{ $category->name }}</td>
                                 <td class="px-6 py-4">@include('categories.partials.status')</td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ $category->created_at->format('d/m/Y') }}</td>
-                                <td class="px-6 py-4">@include('categories.partials.actions')</td>
+                                <td class="px-6 py-4">@if (Auth::user()->hasAnyRole(['administrator'])) @include('categories.partials.actions') @else <span class="text-sm text-gray-400">Solo consulta</span> @endif</td>
                             </tr>
                         @empty
                             <tr><td colspan="4" class="px-6 py-12 text-center text-sm text-gray-500">No se encontraron categorías.</td></tr>
@@ -62,7 +64,7 @@
                             <div><h2 class="font-semibold text-gray-900">{{ $category->name }}</h2><p class="mt-1 text-xs text-gray-500">Creada el {{ $category->created_at->format('d/m/Y') }}</p></div>
                             @include('categories.partials.status')
                         </div>
-                        <div class="mt-4 border-t border-gray-100 pt-4">@include('categories.partials.actions')</div>
+                        @if (Auth::user()->hasAnyRole(['administrator']))<div class="mt-4 border-t border-gray-100 pt-4">@include('categories.partials.actions')</div>@endif
                     </article>
                 @empty
                     <div class="rounded-xl bg-white p-8 text-center text-sm text-gray-500 shadow-sm ring-1 ring-gray-200">No se encontraron categorías.</div>

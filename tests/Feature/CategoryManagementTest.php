@@ -49,51 +49,65 @@ class CategoryManagementTest extends TestCase
         }
     }
 
-    public function test_administrator_and_cashier_can_create_categories(): void
+    public function test_administrator_can_create_category_and_cashier_cannot(): void
     {
-        foreach ([[$this->administrator(), 'Leches'], [$this->cashier(), 'Verduras']] as [$user, $name]) {
-            $this->actingAs($user)->post(route('categories.store'), ['name' => "  {$name}  "])
-                ->assertRedirect(route('categories.index'));
+        $administrator = $this->administrator();
+        $this->actingAs($administrator)->post(route('categories.store'), ['name' => '  Leches  '])
+            ->assertRedirect(route('categories.index'));
+        $this->assertDatabaseHas('categories', ['name' => 'Leches', 'created_by' => $administrator->id]);
 
-            $this->assertDatabaseHas('categories', [
-                'branch_id' => $this->branch->id,
-                'name' => $name,
-                'is_active' => true,
-                'created_by' => $user->id,
-            ]);
-        }
+        $this->actingAs($this->cashier())->get(route('categories.create'))->assertForbidden();
+        $this->actingAs($this->cashier())->post(route('categories.store'), ['name' => 'Verduras'])->assertForbidden();
+        $this->assertDatabaseMissing('categories', ['name' => 'Verduras']);
     }
 
-    public function test_administrator_and_cashier_can_edit_categories(): void
+    public function test_administrator_can_edit_category_and_returns_to_list(): void
     {
-        foreach ([[$this->administrator(), 'Carnes'], [$this->cashier(), 'Galletas']] as [$user, $newName]) {
-            $category = Category::factory()->create(['branch_id' => $this->branch->id]);
-
-            $this->actingAs($user)->put(route('categories.update', $category), ['name' => $newName])
-                ->assertRedirect(route('categories.edit', $category));
-
-            $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => $newName]);
-        }
+        $category = Category::factory()->create(['branch_id' => $this->branch->id]);
+        $this->actingAs($this->administrator())->put(route('categories.update', $category), ['name' => 'Carnes'])
+            ->assertRedirect(route('categories.index'))->assertSessionHas('status');
+        $this->assertDatabaseHas('categories', ['id' => $category->id, 'name' => 'Carnes']);
     }
 
-    public function test_administrator_and_cashier_can_deactivate_and_reactivate_categories(): void
+    public function test_cashier_cannot_edit_or_toggle_categories_by_direct_url(): void
     {
-        foreach ([$this->administrator(), $this->cashier()] as $user) {
-            $category = Category::factory()->create(['branch_id' => $this->branch->id, 'is_active' => true]);
+        $category = Category::factory()->create(['branch_id' => $this->branch->id, 'is_active' => true]);
+        $cashier = $this->cashier();
 
-            $this->actingAs($user)->patch(route('categories.toggle', $category))->assertRedirect(route('categories.index'));
-            $this->assertDatabaseHas('categories', ['id' => $category->id, 'is_active' => false]);
+        $this->actingAs($cashier)->get(route('categories.edit', $category))->assertForbidden();
+        $this->actingAs($cashier)->put(route('categories.update', $category), ['name' => 'Manipulada'])->assertForbidden();
+        $this->actingAs($cashier)->patch(route('categories.toggle', $category))->assertForbidden();
+        $this->assertTrue($category->fresh()->is_active);
+    }
 
-            $this->actingAs($user)->patch(route('categories.toggle', $category))->assertRedirect(route('categories.index'));
-            $this->assertDatabaseHas('categories', ['id' => $category->id, 'is_active' => true]);
-        }
+    public function test_administrator_can_deactivate_and_reactivate_categories(): void
+    {
+        $category = Category::factory()->create(['branch_id' => $this->branch->id, 'is_active' => true]);
+        $user = $this->administrator();
+
+        $this->actingAs($user)->patch(route('categories.toggle', $category))->assertRedirect(route('categories.index'));
+        $this->assertFalse($category->fresh()->is_active);
+        $this->actingAs($user)->patch(route('categories.toggle', $category))->assertRedirect(route('categories.index'));
+        $this->assertTrue($category->fresh()->is_active);
+    }
+
+    public function test_cashier_category_list_hides_mutation_controls(): void
+    {
+        $category = Category::factory()->create(['branch_id' => $this->branch->id]);
+
+        $this->actingAs($this->cashier())->get(route('categories.index'))
+            ->assertOk()
+            ->assertSee($category->name)
+            ->assertDontSee('Crear categoría')
+            ->assertDontSee('Editar')
+            ->assertDontSee('Desactivar');
     }
 
     public function test_duplicate_names_are_rejected_after_whitespace_and_case_normalization(): void
     {
         Category::factory()->create(['branch_id' => $this->branch->id, 'name' => 'Bebidas frías']);
 
-        $this->actingAs($this->cashier())
+        $this->actingAs($this->administrator())
             ->post(route('categories.store'), ['name' => '  bebidas   frías  '])
             ->assertSessionHasErrors('name');
 
@@ -104,9 +118,12 @@ class CategoryManagementTest extends TestCase
     {
         Category::factory()->create(['branch_id' => $this->branch->id, 'name' => 'Bebidas']);
         $otherBranch = Branch::factory()->create();
-        $cashier = $this->cashier(['branch_id' => $otherBranch->id]);
+        $administrator = User::factory()->create([
+            'role_id' => $this->administratorRole->id,
+            'branch_id' => $otherBranch->id,
+        ]);
 
-        $this->actingAs($cashier)->post(route('categories.store'), ['name' => 'Bebidas'])
+        $this->actingAs($administrator)->post(route('categories.store'), ['name' => 'Bebidas'])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('categories', 2);

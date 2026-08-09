@@ -125,7 +125,7 @@ class ProductController extends Controller
             ]);
         });
 
-        return redirect()->route('products.edit', $product)->with('status', 'Producto actualizado correctamente.');
+        return redirect()->route('products.index')->with('status', 'Producto actualizado correctamente.');
     }
 
     public function toggle(Product $product, ProductBarcodeGuard $barcodeGuard): RedirectResponse
