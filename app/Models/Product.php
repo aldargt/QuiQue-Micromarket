@@ -62,6 +62,16 @@ class Product extends Model
         return $this->hasMany(InventoryMovement::class);
     }
 
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class);
+    }
+
+    public function priceHistory(): HasMany
+    {
+        return $this->hasMany(ProductPriceHistory::class)->latest();
+    }
+
     public function hasLowStock(): bool
     {
         return bccomp($this->minimum_stock, '0', 3) === 1

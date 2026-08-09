@@ -7,6 +7,7 @@ use App\Enums\RoleSlug;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductPriceHistory;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -157,6 +158,31 @@ class ProductManagementTest extends TestCase
         $this->assertSame('12.500', $product->stock);
         $this->assertSame($this->branch->id, $product->branch_id);
         $this->assertNotSame('CAMBIO-NO-PERMITIDO', $product->internal_code);
+    }
+
+    public function test_sale_price_change_creates_immutable_history_but_equal_price_does_not(): void
+    {
+        $product = $this->product(['sale_price' => '5.00']);
+        $user = $this->cashier();
+        $time = now()->startOfSecond();
+        $this->travelTo($time);
+
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'sale_price' => '6.00'])->assertSessionHasNoErrors();
+        $history = ProductPriceHistory::query()->sole();
+        $this->assertSame($this->branch->id, $history->branch_id);
+        $this->assertSame($product->id, $history->product_id);
+        $this->assertSame($user->id, $history->user_id);
+        $this->assertSame('5.00', $history->old_price);
+        $this->assertSame('6.00', $history->new_price);
+        $this->assertSame($time->format('Y-m-d H:i:s'), $history->created_at->format('Y-m-d H:i:s'));
+
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'sale_price' => '6.00'])->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('product_price_history', 1);
+        $this->actingAs($user)->get(route('products.edit', $product))->assertSee('Bs 5.00')->assertSee('Bs 6.00')->assertSee($user->name);
+        $this->delete('/product-price-history/'.$history->id)->assertNotFound();
+        $this->put('/product-price-history/'.$history->id)->assertNotFound();
+        $this->assertNotNull($history->fresh());
+        $this->travelBack();
     }
 
     public function test_search_and_filters_work_with_name_codes_category_status_and_zero_stock(): void

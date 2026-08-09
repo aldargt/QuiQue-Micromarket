@@ -50,4 +50,9 @@ class InventoryMovement extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function sale(): BelongsTo
+    {
+        return $this->belongsTo(Sale::class);
+    }
 }

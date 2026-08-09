@@ -5,8 +5,10 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryMovementController;
+use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -39,6 +41,15 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/inventory/movements', [InventoryMovementController::class, 'index'])->name('inventory.movements.index');
     Route::get('/inventory/{product}/movements/create', [InventoryMovementController::class, 'create'])->name('inventory.movements.create');
     Route::post('/inventory/{product}/movements', [InventoryMovementController::class, 'store'])->name('inventory.movements.store');
+
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/products', [PosController::class, 'search'])->name('pos.products.search');
+    Route::put('/pos/cart/{product}', [PosController::class, 'updateCart'])->name('pos.cart.update');
+    Route::delete('/pos/cart/{product}', [PosController::class, 'removeCartItem'])->name('pos.cart.destroy');
+    Route::delete('/pos/cart', [PosController::class, 'clearCart'])->name('pos.cart.clear');
+    Route::post('/pos/sales', [PosController::class, 'store'])->name('pos.sales.store');
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
 });
 
 Route::prefix('admin')->name('admin.')->middleware([

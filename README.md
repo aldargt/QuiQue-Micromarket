@@ -88,3 +88,20 @@ entrada manual conserva dos decimales para precios y tres para cantidades.
 
 En Categorías, el Administrador puede crear, editar y activar/desactivar. El Cajero
 mantiene acceso de consulta y búsqueda, pero recibe 403 en rutas de modificación.
+
+## Punto de venta y ventas
+
+Administrador y Cajero pueden usar el POS y consultar el historial de su sucursal.
+La búsqueda acepta nombre, código de barras y código interno. Las ventas conservan
+el precio histórico, aceptan efectivo, QR o pago mixto y se confirman en una sola
+transacción. El stock se descuenta exclusivamente mediante `InventoryService` y
+cada salida automática queda vinculada a la venta. No existen rutas para modificar
+o eliminar ventas confirmadas.
+
+El carrito del POS se conserva en la sesión autenticada con el identificador,
+cantidad y precio observado de cada producto. Al regresar al POS, los demás datos
+se reconstruyen desde la base de datos. Un cambio de precio bloquea la confirmación
+hasta que el cajero actualiza expresamente la línea. Vaciar el carrito no crea
+ventas ni movimientos. Las modificaciones del precio de venta generan registros
+permanentes en `product_price_history` con producto, sucursal, usuario y valores
+anterior y nuevo.

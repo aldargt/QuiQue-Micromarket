@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductPriceHistory;
 use App\Services\ProductBarcodeGuard;
 use App\Services\ProductCodeGenerator;
 use Illuminate\Database\Eloquent\Collection;
@@ -95,9 +96,10 @@ class ProductController extends Controller
         }
 
         return view('products.edit', [
-            'product' => $product,
+            'product' => $product->load(['priceHistory.user']),
             'categories' => $categories,
             'units' => MeasurementUnit::cases(),
+            'returnToPos' => $request->query('return') === 'pos',
         ]);
     }
 
@@ -109,21 +111,34 @@ class ProductController extends Controller
     ): RedirectResponse {
         DB::transaction(function () use ($request, $product, $barcodeGuard, $codeGenerator): void {
             Branch::query()->whereKey($product->branch_id)->lockForUpdate()->firstOrFail();
-            if ($product->is_active) {
-                $barcodeGuard->ensureAvailable($product->branch_id, $request->validated('barcode'), $product);
+            $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
+            if ($lockedProduct->is_active) {
+                $barcodeGuard->ensureAvailable($lockedProduct->branch_id, $request->validated('barcode'), $lockedProduct);
             }
 
             $internalCode = match (true) {
                 $request->validated('barcode') !== null => null,
-                $product->internal_code !== null => $product->internal_code,
+                $lockedProduct->internal_code !== null => $lockedProduct->internal_code,
                 default => $codeGenerator->generate(),
             };
 
-            $product->update([
+            $oldPrice = $lockedProduct->sale_price;
+            $lockedProduct->update([
                 ...$request->validated(),
                 'internal_code' => $internalCode,
             ]);
+
+            if (bccomp($oldPrice, $lockedProduct->sale_price, 2) !== 0) {
+                ProductPriceHistory::query()->create([
+                    'branch_id' => $lockedProduct->branch_id, 'product_id' => $lockedProduct->id,
+                    'user_id' => $request->user()->id, 'old_price' => $oldPrice, 'new_price' => $lockedProduct->sale_price,
+                ]);
+            }
         });
+
+        if ($request->input('return_to') === 'pos') {
+            return redirect()->route('pos.index')->with('status', 'Producto actualizado. Revise el precio en el carrito.');
+        }
 
         return redirect()->route('products.index')->with('status', 'Producto actualizado correctamente.');
     }
