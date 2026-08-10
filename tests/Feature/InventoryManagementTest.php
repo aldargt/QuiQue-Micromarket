@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\InventoryMovementType;
+use App\Enums\MeasurementUnit;
 use App\Enums\RoleSlug;
 use App\Models\Branch;
 use App\Models\Category;
@@ -245,6 +246,30 @@ class InventoryManagementTest extends TestCase
             ->assertSee('Producto agotado')->assertDontSee('Producto bajo')->assertDontSee('Producto normal');
         $this->actingAs($user)->get(route('inventory.index', ['stock' => 'low']))
             ->assertSee('Producto bajo')->assertDontSee('Producto agotado')->assertDontSee('Producto normal');
+    }
+
+    public function test_inventory_and_movement_history_format_all_quantities_by_product_unit(): void
+    {
+        $product = $this->product([
+            'name' => 'Aceite a granel',
+            'unit' => MeasurementUnit::Liter,
+            'stock' => '2.500',
+            'minimum_stock' => '1.000',
+        ]);
+        InventoryMovement::factory()->create([
+            'branch_id' => $this->branch->id,
+            'product_id' => $product->id,
+            'user_id' => $this->administrator()->id,
+            'quantity' => '0.500',
+            'stock_before' => '2.000',
+            'stock_after' => '2.500',
+        ]);
+        $user = $this->cashier();
+
+        $this->actingAs($user)->get(route('inventory.index'))->assertOk()
+            ->assertSee('2,500 L')->assertSee('Mínimo: 1,000 L');
+        $this->actingAs($user)->get(route('inventory.movements.index'))->assertOk()
+            ->assertSee('+0,500 L')->assertSee('2,000 L')->assertSee('2,500 L');
     }
 
     public function test_expiration_filter_includes_only_products_expiring_in_next_seven_days(): void

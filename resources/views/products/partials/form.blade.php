@@ -47,7 +47,7 @@
     </div>
     <div class="rounded-lg border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900">
         <span class="font-semibold">Stock actual:</span>
-        {{ isset($product) ? number_format((float) $product->stock, 3, ',', '.') : '0,000' }}
+        {{ isset($product) ? $product->unit->formatQuantity($product->stock) : '0 (stock inicial)' }}
         <p class="mt-1 text-xs">El stock se modificará exclusivamente desde el módulo de Inventario.</p>
     </div>
     <div>

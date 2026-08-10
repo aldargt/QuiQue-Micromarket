@@ -69,7 +69,7 @@
                                 <td class="px-5 py-4"><div class="font-medium text-gray-900">{{ $product->name }}</div><div class="mt-1 text-xs text-gray-500">{{ $product->displayCode() }} · {{ $product->unit->label() }}</div></td>
                                 <td class="px-5 py-4 text-sm text-gray-700">{{ $product->category->name }}</td>
                                 <td class="px-5 py-4 text-sm font-medium text-gray-900">Bs {{ number_format((float) $product->sale_price, 2, ',', '.') }}</td>
-                                <td class="px-5 py-4 text-sm text-gray-700">{{ number_format((float) $product->stock, 3, ',', '.') }}</td>
+                                <td class="px-5 py-4 text-sm text-gray-700">{{ $product->unit->formatQuantity($product->stock) }}</td>
                                 <td class="px-5 py-4">@include('products.partials.status')</td>
                                 <td class="px-5 py-4">@include('products.partials.actions')</td>
                             </tr>
@@ -84,7 +84,7 @@
                 @forelse ($products as $product)
                     <article class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-200">
                         <div class="flex items-start justify-between gap-3"><div><h2 class="font-semibold text-gray-900">{{ $product->name }}</h2><p class="mt-1 text-xs text-gray-500">{{ $product->displayCode() }}</p></div>@include('products.partials.status')</div>
-                        <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-gray-500">Categoría</dt><dd class="font-medium text-gray-900">{{ $product->category->name }}</dd></div><div><dt class="text-gray-500">Unidad</dt><dd class="font-medium text-gray-900">{{ $product->unit->label() }}</dd></div><div><dt class="text-gray-500">Precio</dt><dd class="font-medium text-gray-900">Bs {{ number_format((float) $product->sale_price, 2, ',', '.') }}</dd></div><div><dt class="text-gray-500">Stock</dt><dd class="font-medium text-gray-900">{{ number_format((float) $product->stock, 3, ',', '.') }}</dd></div></dl>
+                        <dl class="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt class="text-gray-500">Categoría</dt><dd class="font-medium text-gray-900">{{ $product->category->name }}</dd></div><div><dt class="text-gray-500">Unidad</dt><dd class="font-medium text-gray-900">{{ $product->unit->label() }}</dd></div><div><dt class="text-gray-500">Precio</dt><dd class="font-medium text-gray-900">Bs {{ number_format((float) $product->sale_price, 2, ',', '.') }}</dd></div><div><dt class="text-gray-500">Stock</dt><dd class="font-medium text-gray-900">{{ $product->unit->formatQuantity($product->stock) }}</dd></div></dl>
                         <div class="mt-4 border-t border-gray-100 pt-4">@include('products.partials.actions')</div>
                     </article>
                 @empty

@@ -3,6 +3,7 @@
 use App\Enums\RoleSlug;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PosController;
@@ -15,9 +16,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'active'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'active'])->name('dashboard');
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

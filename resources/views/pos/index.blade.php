@@ -15,7 +15,7 @@
                             <template x-for="product in results" :key="product.id">
                                 <button type="button" @click="add(product)" class="flex w-full justify-between gap-4 p-3 text-left hover:bg-gray-50">
                                     <span><strong x-text="product.name"></strong><small class="block text-gray-500" x-text="product.code + ' · ' + product.unit"></small></span>
-                                    <span class="text-right"><strong x-text="money(product.price)"></strong><small class="block text-gray-500" x-text="'Stock: ' + quantity(product.stock)"></small></span>
+                                    <span class="text-right"><strong x-text="money(product.price)"></strong><small class="block text-gray-500" x-text="'Stock: ' + product.stock_label"></small></span>
                                 </button>
                             </template>
                         </div>
@@ -28,7 +28,7 @@
                         <div class="divide-y">
                             <template x-for="(item, index) in cart" :key="item.id">
                                 <div class="p-4 grid gap-3 sm:grid-cols-[1fr_9rem_7rem_5.5rem] sm:items-center">
-                                    <div><strong x-text="item.name"></strong><div class="text-sm text-gray-500"><span x-text="`Precio usado: ${money(effectivePrice(item))}`"></span><span x-text="` / ${item.unit} · Disponible: ${quantity(item.stock)}`"></span></div><div x-show="item.price_changed" class="mt-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p class="font-semibold">El precio de este producto cambió.</p><p class="mt-1">Nuevo precio: <strong x-text="money(item.price)"></strong></p><p class="mt-1">Actualice el carrito para continuar.</p><button type="button" @click="acknowledgePrice(item)" class="mt-2 font-semibold text-amber-950 underline">Actualizar carrito</button></div><div x-show="!item.available" class="mt-2 text-sm font-semibold text-red-600">Este producto ya no está disponible.</div></div>
+                                    <div><strong x-text="item.name"></strong><div class="text-sm text-gray-500"><span x-text="`Precio usado: ${money(effectivePrice(item))}`"></span><span x-text="` / ${item.unit} · Disponible: ${item.stock_label}`"></span></div><div x-show="item.price_changed" class="mt-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><p class="font-semibold">El precio de este producto cambió.</p><p class="mt-1">Nuevo precio: <strong x-text="money(item.price)"></strong></p><p class="mt-1">Actualice el carrito para continuar.</p><button type="button" @click="acknowledgePrice(item)" class="mt-2 font-semibold text-amber-950 underline">Actualizar carrito</button></div><div x-show="!item.available" class="mt-2 text-sm font-semibold text-red-600">Este producto ya no está disponible.</div></div>
                                     <div>
                                         <label class="sr-only">Cantidad</label>
                                         <input type="number" :step="item.is_unit ? '1' : 'any'" :min="item.is_unit ? '1' : '0.001'" :max="item.stock" x-model="item.quantity" @input="validateItem(item)" @change="sync(item)" class="w-full rounded-md border-gray-300">
@@ -95,10 +95,10 @@
             openClearModal() { if (this.cart.length) this.clearModalOpen = true; },
             async clearCart() { if (!this.cart.length || this.clearingCart) { this.clearModalOpen = false; return; } this.clearingCart = true; const response = await this.request(`{{ route('pos.cart.clear') }}`, 'DELETE'); if (response.ok) { this.cart = []; this.cashReceived = ''; this.cashAmount = ''; this.qrAmount = ''; this.clearModalOpen = false; } this.clearingCart = false; },
             request(url, method, data = null) { return fetch(url, {method, headers: {'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'}, body: data === null ? null : JSON.stringify(data)}); },
-            validateItem(item) { const value = Number(item.quantity); item.error = value <= 0 ? 'Cantidad inválida.' : value > Number(item.stock) ? `Solo hay ${this.quantity(item.stock)} disponibles.` : (item.is_unit && !Number.isInteger(value)) ? 'La unidad requiere una cantidad entera.' : ''; },
+            validateItem(item) { const value = Number(item.quantity); item.error = value <= 0 ? 'Cantidad inválida.' : value > Number(item.stock) ? `Solo hay ${item.stock_label} disponibles.` : (item.is_unit && !Number.isInteger(value)) ? 'La unidad requiere una cantidad entera.' : ''; },
             effectivePrice(item) { return item.price_changed ? item.observed_price : item.price; },
             lineTotal(item) { return Math.round(Number(item.quantity || 0) * Number(this.effectivePrice(item)) * 100) / 100; },
-            money(value) { return `Bs ${Number(value || 0).toFixed(2)}`; }, quantity(value) { return Number(value).toLocaleString('es-BO', {maximumFractionDigits: 3}); },
+            money(value) { return `Bs ${Number(value || 0).toFixed(2)}`; },
             get total() { return this.cart.reduce((sum, item) => sum + this.lineTotal(item), 0); }, get change() { return Math.max(0, Number(this.cashReceived || 0) - this.total); },
             get canSubmit() { return this.cart.length > 0 && !this.cart.some(i => i.error || i.price_changed || !i.available) && (this.payment !== 'cash' || Number(this.cashReceived) >= this.total) && (this.payment !== 'mixed' || Math.abs(Number(this.cashAmount || 0) + Number(this.qrAmount || 0) - this.total) < 0.001); }
         }}

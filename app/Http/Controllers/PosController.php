@@ -33,7 +33,7 @@ class PosController extends Controller
             ->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('barcode', 'like', "%{$search}%")->orWhere('internal_code', 'like', "%{$search}%"))
             ->orderByRaw('CASE WHEN barcode = ? OR internal_code = ? THEN 0 ELSE 1 END', [$search, $search])->orderBy('name')->limit(12)->get();
 
-        return response()->json($products->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'code' => $p->displayCode(), 'unit' => $p->unit->label(), 'is_unit' => $p->unit->value === 'unit', 'price' => $p->sale_price, 'stock' => $p->stock]));
+        return response()->json($products->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'code' => $p->displayCode(), 'unit' => $p->unit->label(), 'is_unit' => $p->unit->value === 'unit', 'price' => $p->sale_price, 'stock' => $p->stock, 'stock_label' => $p->unit->formatQuantity($p->stock)]));
     }
 
     public function store(StoreSaleRequest $request, SaleService $service): RedirectResponse

@@ -68,6 +68,11 @@ El stock actual se muestra únicamente como información, nace en cero y no se a
 desde los formularios de Productos. Cualquier cambio queda reservado para el módulo
 de Inventario. No existen rutas de eliminación de productos.
 
+Las unidades comerciales disponibles son Unidad, Kilogramo y Litro. Unidad exige
+cantidades enteras; Kilogramo y Litro admiten hasta tres decimales. Cada línea de
+venta conserva su unidad histórica para que Dashboard y detalle de venta presenten
+cantidades como `30 unidades`, `0,500 kg` o `1,500 L`.
+
 ## Inventario
 
 Inventario es la única vía para modificar `products.stock`. Cada entrada, salida,
@@ -105,3 +110,11 @@ hasta que el cajero actualiza expresamente la línea. Vaciar el carrito no crea
 ventas ni movimientos. Las modificaciones del precio de venta generan registros
 permanentes en `product_price_history` con producto, sucursal, usuario y valores
 anterior y nuevo.
+
+## Dashboard
+
+Inicio muestra el resumen del día local de la sucursal del usuario: cantidad y
+total de ventas confirmadas, componentes Efectivo y QR, total de operaciones con
+pago mixto, productos más vendidos con sus datos históricos, stock agotado/bajo y
+productos próximos a vencer o vencidos. Las métricas usan agregaciones SQL y
+enlazan a Ventas e Inventario; no constituyen todavía reportes avanzados.

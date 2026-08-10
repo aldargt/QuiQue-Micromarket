@@ -20,7 +20,7 @@ class InventoryController extends Controller
             'category' => $request->integer('category') ?: null,
             'status' => in_array($request->query('status'), ['active', 'inactive'], true) ? $request->query('status') : null,
             'stock' => in_array($request->query('stock'), ['zero', 'low'], true) ? $request->query('stock') : null,
-            'expiration' => $request->query('expiration') === 'expiring' ? 'expiring' : null,
+            'expiration' => in_array($request->query('expiration'), ['expiring', 'expired'], true) ? $request->query('expiration') : null,
         ];
 
         $products = Product::query()
@@ -42,6 +42,8 @@ class InventoryController extends Controller
                 ->whereColumn('stock', '<=', 'minimum_stock'))
             ->when($filters['expiration'] === 'expiring', fn ($query) => $query
                 ->whereBetween('expires_at', [today(), today()->addDays(7)]))
+            ->when($filters['expiration'] === 'expired', fn ($query) => $query
+                ->whereDate('expires_at', '<', today()))
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();

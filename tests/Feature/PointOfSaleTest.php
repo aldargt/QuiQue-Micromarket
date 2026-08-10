@@ -150,7 +150,7 @@ class PointOfSaleTest extends TestCase
         $this->assertMatchesRegularExpression('/^VTA-PRINCIPAL-\d{6}$/', $sale->sale_number);
         $this->assertSame('25.00', $sale->total);
         $this->assertSame('8.000', $product->fresh()->stock);
-        $this->assertDatabaseHas('sale_items', ['sale_id' => $sale->id, 'quantity' => 2, 'unit_price' => 12.50, 'subtotal' => 25]);
+        $this->assertDatabaseHas('sale_items', ['sale_id' => $sale->id, 'unit' => MeasurementUnit::Unit->value, 'quantity' => 2, 'unit_price' => 12.50, 'subtotal' => 25]);
         $this->assertDatabaseHas('payment_details', ['sale_id' => $sale->id, 'method' => 'cash', 'amount' => 25, 'received_amount' => 30, 'change_amount' => 5]);
         $this->assertDatabaseHas('inventory_movements', ['sale_id' => $sale->id, 'type' => InventoryMovementType::Exit->value, 'stock_before' => 10, 'stock_after' => 8]);
         $product->update(['sale_price' => '99.00', 'name' => 'Leche nueva']);
@@ -215,6 +215,8 @@ class PointOfSaleTest extends TestCase
         }
         $kilogram = $this->product(['unit' => MeasurementUnit::Kilogram]);
         $this->actingAs($user)->post(route('pos.sales.store'), $this->saleData($kilogram, ['items' => [['product_id' => $kilogram->id, 'quantity' => '0.123']]]))->assertSessionHasNoErrors();
+        $liter = $this->product(['unit' => MeasurementUnit::Liter]);
+        $this->actingAs($user)->post(route('pos.sales.store'), $this->saleData($liter, ['items' => [['product_id' => $liter->id, 'quantity' => '1.750']]]))->assertSessionHasNoErrors();
         $invalid = $this->product(['unit' => MeasurementUnit::Kilogram]);
         $this->actingAs($user)->post(route('pos.sales.store'), $this->saleData($invalid, ['items' => [['product_id' => $invalid->id, 'quantity' => '0.1234']]]))->assertSessionHasErrors('items.0.quantity');
     }

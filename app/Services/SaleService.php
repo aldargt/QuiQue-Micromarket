@@ -67,7 +67,7 @@ class SaleService
             $sale->update(['sale_number' => $this->numbers->forNextId($branch, $sale->id)]);
 
             foreach ($lines as $line) {
-                $sale->items()->create(['product_id' => $line['product']->id, 'product_name' => $line['product']->name, 'quantity' => $line['quantity'], 'unit_price' => $line['product']->sale_price, 'subtotal' => $line['subtotal']]);
+                $sale->items()->create(['product_id' => $line['product']->id, 'product_name' => $line['product']->name, 'unit' => $line['product']->unit, 'quantity' => $line['quantity'], 'unit_price' => $line['product']->sale_price, 'subtotal' => $line['subtotal']]);
                 $this->inventory->record($user, $line['product'], InventoryMovementType::Exit, $line['quantity'], 'Venta '.$sale->sale_number, null, $sale);
             }
             foreach ($payments as $payment) {

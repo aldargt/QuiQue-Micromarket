@@ -1,17 +1,40 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Inicio
-        </h2>
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div><h1 class="text-xl font-semibold text-gray-800">Inicio</h1><p class="text-sm text-gray-500">Resumen de {{ $date->translatedFormat('l d \d\e F') }}</p></div>
+            <a href="{{ route('pos.index') }}" class="mt-2 inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 sm:mt-0">Nueva venta</a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    Sesión iniciada correctamente. Los módulos operativos se habilitarán en las próximas etapas.
+    <div class="py-8">
+        <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+            <section aria-labelledby="sales-summary-title">
+                <div class="mb-3 flex items-center justify-between"><h2 id="sales-summary-title" class="text-lg font-semibold text-gray-900">Ventas de hoy</h2><a href="{{ route('sales.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Ver historial</a></div>
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <a href="{{ route('sales.index') }}" class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 hover:ring-indigo-300"><p class="text-sm font-medium text-gray-500">Ventas confirmadas</p><p class="mt-2 text-3xl font-bold text-gray-900">{{ $salesCount }}</p><p class="mt-1 text-sm text-gray-600">Bs {{ number_format((float) $salesTotal, 2, ',', '.') }} vendidos hoy</p></a>
+                    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Efectivo recibido</p><p class="mt-2 text-3xl font-bold text-emerald-700">Bs {{ number_format((float) $cashTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $cashCount }} {{ $cashCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Incluye pagos mixtos.</p></div>
+                    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Pagos QR</p><p class="mt-2 text-3xl font-bold text-cyan-700">Bs {{ number_format((float) $qrTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $qrCount }} {{ $qrCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Incluye pagos mixtos.</p></div>
+                    <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Ventas con pago mixto</p><p class="mt-2 text-3xl font-bold text-violet-700">Bs {{ number_format((float) $mixedTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $mixedCount }} {{ $mixedCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Operaciones con ambos métodos.</p></div>
                 </div>
+            </section>
+
+            <div class="grid gap-6 xl:grid-cols-5">
+                <section class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 xl:col-span-3" aria-labelledby="top-products-title">
+                    <div class="flex items-center justify-between border-b p-5"><div><h2 id="top-products-title" class="font-semibold text-gray-900">Productos más vendidos hoy</h2><p class="text-sm text-gray-500">Basado en los datos históricos de cada venta.</p></div><a href="{{ route('sales.index') }}" class="text-sm font-semibold text-indigo-600">Ver ventas</a></div>
+                    <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">Producto</th><th class="px-5 py-3 text-right text-xs font-semibold uppercase text-gray-500">Cantidad</th><th class="px-5 py-3 text-right text-xs font-semibold uppercase text-gray-500">Importe</th></tr></thead><tbody class="divide-y divide-gray-100">@forelse ($topProducts as $item)<tr><td class="px-5 py-3 font-medium text-gray-900">{{ $item->product_name }}</td><td class="px-5 py-3 text-right text-gray-700">{{ $item->quantity_display }}</td><td class="px-5 py-3 text-right font-medium text-gray-900">Bs {{ number_format((float) $item->amount_generated, 2, ',', '.') }}</td></tr>@empty<tr><td colspan="3" class="p-8 text-center text-gray-500">Todavía no existen ventas confirmadas hoy.</td></tr>@endforelse</tbody></table></div>
+                </section>
+
+                <section class="space-y-4 xl:col-span-2" aria-labelledby="stock-attention-title">
+                    <h2 id="stock-attention-title" class="text-lg font-semibold text-gray-900">Atención de inventario</h2>
+                    <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200"><a href="{{ route('inventory.index', ['stock' => 'zero']) }}" class="flex items-center justify-between border-b p-4"><span class="font-semibold text-gray-900">Productos agotados</span><span class="rounded-full bg-red-100 px-3 py-1 text-sm font-bold text-red-700">{{ $zeroStockCount }}</span></a><div class="divide-y">@forelse ($zeroStockProducts as $product)<div class="flex justify-between gap-3 p-4 text-sm"><span>{{ $product->name }}</span><span class="whitespace-nowrap font-semibold text-red-700">{{ $product->unit->formatQuantity($product->stock) }}</span></div>@empty<p class="p-4 text-sm text-gray-500">No hay productos agotados.</p>@endforelse</div></div>
+                    <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200"><a href="{{ route('inventory.index', ['stock' => 'low']) }}" class="flex items-center justify-between border-b p-4"><span class="font-semibold text-gray-900">Stock bajo</span><span class="rounded-full bg-amber-100 px-3 py-1 text-sm font-bold text-amber-700">{{ $lowStockCount }}</span></a><div class="divide-y">@forelse ($lowStockProducts as $product)<div class="p-4 text-sm"><div class="flex justify-between gap-3"><span>{{ $product->name }}</span><span class="whitespace-nowrap font-semibold text-amber-700">Stock: {{ $product->unit->formatQuantity($product->stock) }}</span></div><p class="mt-1 text-xs text-gray-500">Mínimo: {{ $product->unit->formatQuantity($product->minimum_stock) }}</p></div>@empty<p class="p-4 text-sm text-gray-500">No hay productos con stock bajo.</p>@endforelse</div></div>
+                </section>
             </div>
+
+            <section aria-labelledby="expiration-title"><h2 id="expiration-title" class="mb-3 text-lg font-semibold text-gray-900">Vencimientos</h2><div class="grid gap-4 lg:grid-cols-2">
+                <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200"><a href="{{ route('inventory.index', ['expiration' => 'expiring']) }}" class="flex items-center justify-between border-b p-4"><span class="font-semibold text-gray-900">Próximos 7 días</span><span class="rounded-full bg-orange-100 px-3 py-1 text-sm font-bold text-orange-700">{{ $expiringCount }}</span></a><div class="divide-y">@forelse ($expiringProducts as $product)<div class="flex justify-between gap-3 p-4 text-sm"><span>{{ $product->name }}</span><span class="whitespace-nowrap text-orange-700">{{ $product->expires_at->format('d/m/Y') }}</span></div>@empty<p class="p-4 text-sm text-gray-500">No hay productos próximos a vencer.</p>@endforelse</div></div>
+                <div class="rounded-xl bg-white shadow-sm ring-1 ring-gray-200"><a href="{{ route('inventory.index', ['expiration' => 'expired']) }}" class="flex items-center justify-between border-b p-4"><span class="font-semibold text-gray-900">Vencidos</span><span class="rounded-full bg-red-100 px-3 py-1 text-sm font-bold text-red-700">{{ $expiredCount }}</span></a><div class="divide-y">@forelse ($expiredProducts as $product)<div class="flex justify-between gap-3 p-4 text-sm"><span>{{ $product->name }}</span><span class="whitespace-nowrap text-red-700">{{ $product->expires_at->format('d/m/Y') }}</span></div>@empty<p class="p-4 text-sm text-gray-500">No hay productos vencidos.</p>@endforelse</div></div>
+            </div></section>
         </div>
     </div>
 </x-app-layout>

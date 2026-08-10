@@ -30,7 +30,7 @@ class PosCartService
                 'unit' => $product->unit->label(), 'is_unit' => $product->unit === MeasurementUnit::Unit,
                 'price' => $product->sale_price, 'observed_price' => $observedPrice,
                 'price_changed' => bccomp($observedPrice, $product->sale_price, 2) !== 0,
-                'stock' => $product->stock, 'quantity' => (string) $line['quantity'],
+                'stock' => $product->stock, 'stock_label' => $product->unit->formatQuantity($product->stock), 'quantity' => (string) $line['quantity'],
                 'available' => $product->is_active && bccomp($product->stock, '0', 3) === 1,
             ];
         })->filter()->values()->all();

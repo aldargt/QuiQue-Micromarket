@@ -69,6 +69,6 @@ class InventoryMovementController extends Controller
         );
 
         return redirect()->route('inventory.movements.index', ['product' => $product->id])
-            ->with('status', "Movimiento registrado. Nuevo stock: {$movement->stock_after}.");
+            ->with('status', 'Movimiento registrado. Nuevo stock: '.$movement->product->unit->formatQuantity($movement->stock_after).'.');
     }
 }

@@ -41,7 +41,9 @@ class ProductManagementTest extends TestCase
             $this->actingAs($user)->get(route('products.index'))->assertOk();
             $this->actingAs($user)->get(route('products.create'))
                 ->assertOk()
-                ->assertSee('step="any"', false);
+                ->assertSee('step="any"', false)
+                ->assertSee('Unidad')->assertSee('Kilogramo')->assertSee('Litro')
+                ->assertDontSee('Gramo')->assertDontSee('Mililitro');
         }
     }
 
@@ -207,6 +209,17 @@ class ProductManagementTest extends TestCase
         ]))->assertSee('Leche especial')->assertDontSee('Galletas');
     }
 
+    public function test_product_stock_is_presented_according_to_its_measurement_unit(): void
+    {
+        $this->product(['name' => 'Producto unitario', 'unit' => MeasurementUnit::Unit, 'stock' => '22.000']);
+        $this->product(['name' => 'Producto pesado', 'unit' => MeasurementUnit::Kilogram, 'stock' => '46.500']);
+        $this->product(['name' => 'Producto líquido', 'unit' => MeasurementUnit::Liter, 'stock' => '2.500']);
+
+        $this->actingAs($this->cashier())->get(route('products.index'))->assertOk()
+            ->assertSee('22 unidades')->assertDontSee('22,000')
+            ->assertSee('46,500 kg')->assertSee('2,500 L');
+    }
+
     public function test_valid_category_rules_are_enforced(): void
     {
         $otherBranch = Branch::factory()->create();
@@ -253,6 +266,15 @@ class ProductManagementTest extends TestCase
         $response->assertSessionHasErrors([
             'barcode', 'unit', 'purchase_price', 'sale_price', 'minimum_stock', 'expires_at',
         ]);
+    }
+
+    public function test_gram_and_milliliter_are_rejected_as_new_product_units(): void
+    {
+        foreach (['gram', 'milliliter'] as $unit) {
+            $this->actingAs($this->cashier())->post(route('products.store'), [...$this->validData(), 'name' => 'Producto '.$unit, 'unit' => $unit])
+                ->assertSessionHasErrors('unit');
+        }
+        $this->assertDatabaseCount('products', 0);
     }
 
     public function test_access_and_branch_isolation_are_enforced_and_delete_route_does_not_exist(): void
