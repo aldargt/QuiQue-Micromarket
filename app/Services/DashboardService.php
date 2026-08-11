@@ -2,48 +2,26 @@
 
 namespace App\Services;
 
-use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
-use App\Models\PaymentDetail;
 use App\Models\Product;
-use App\Models\Sale;
 use App\Models\SaleItem;
 use Carbon\CarbonInterface;
 
 class DashboardService
 {
+    public function __construct(private readonly SalesSummaryService $summaries) {}
+
     /** @return array<string, mixed> */
     public function forBranch(int $branchId, CarbonInterface $day): array
     {
         $start = $day->copy()->startOfDay();
-        $end = $day->copy()->endOfDay();
-        $sales = Sale::query()->where('branch_id', $branchId)->where('status', SaleStatus::Confirmed->value)->whereBetween('confirmed_at', [$start, $end]);
-
-        $salesCount = (clone $sales)->count();
-        $salesTotal = (string) ((clone $sales)->sum('total') ?: '0.00');
-        $paymentAmount = fn (PaymentMethod $method): string => (string) (PaymentDetail::query()
-            ->join('sales', 'sales.id', '=', 'payment_details.sale_id')
-            ->where('sales.branch_id', $branchId)->where('sales.status', SaleStatus::Confirmed->value)
-            ->whereBetween('sales.confirmed_at', [$start, $end])->where('payment_details.method', $method->value)
-            ->sum('payment_details.amount') ?: '0.00');
-        $paymentCount = fn (PaymentMethod $method): int => PaymentDetail::query()
-            ->join('sales', 'sales.id', '=', 'payment_details.sale_id')
-            ->where('sales.branch_id', $branchId)->where('sales.status', SaleStatus::Confirmed->value)
-            ->whereBetween('sales.confirmed_at', [$start, $end])->where('payment_details.method', $method->value)
-            ->distinct()->count('sales.id');
-        $mixedTotal = (string) ((clone $sales)
-            ->whereHas('payments', fn ($query) => $query->where('method', PaymentMethod::Cash->value))
-            ->whereHas('payments', fn ($query) => $query->where('method', PaymentMethod::Qr->value))
-            ->sum('total') ?: '0.00');
-        $mixedCount = (clone $sales)
-            ->whereHas('payments', fn ($query) => $query->where('method', PaymentMethod::Cash->value))
-            ->whereHas('payments', fn ($query) => $query->where('method', PaymentMethod::Qr->value))
-            ->count();
+        $endExclusive = $day->copy()->addDay()->startOfDay();
+        $summary = $this->summaries->forPeriod($branchId, $start, $endExclusive);
 
         $topProducts = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->where('sales.branch_id', $branchId)->where('sales.status', SaleStatus::Confirmed->value)
-            ->whereBetween('sales.confirmed_at', [$start, $end])
+            ->where('sales.confirmed_at', '>=', $start)->where('sales.confirmed_at', '<', $endExclusive)
             ->select(['sale_items.product_id', 'sale_items.product_name', 'sale_items.unit'])
             ->selectRaw('SUM(sale_items.quantity) as quantity_sold')
             ->selectRaw('SUM(sale_items.subtotal) as amount_generated')
@@ -63,14 +41,7 @@ class DashboardService
 
         return [
             'date' => $day,
-            'salesCount' => $salesCount,
-            'salesTotal' => $salesTotal,
-            'cashTotal' => $paymentAmount(PaymentMethod::Cash),
-            'cashCount' => $paymentCount(PaymentMethod::Cash),
-            'qrTotal' => $paymentAmount(PaymentMethod::Qr),
-            'qrCount' => $paymentCount(PaymentMethod::Qr),
-            'mixedTotal' => $mixedTotal,
-            'mixedCount' => $mixedCount,
+            ...$summary,
             'topProducts' => $topProducts,
             'zeroStockCount' => (clone $zeroStock)->count(),
             'zeroStockProducts' => $zeroStock->orderBy('name')->limit(6)->get(),

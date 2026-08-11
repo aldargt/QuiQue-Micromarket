@@ -9,6 +9,7 @@ use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/pos/sales', [PosController::class, 'store'])->name('pos.sales.store');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
 });
 
 Route::prefix('admin')->name('admin.')->middleware([
