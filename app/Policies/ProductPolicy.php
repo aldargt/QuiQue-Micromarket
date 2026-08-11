@@ -18,6 +18,11 @@ class ProductPolicy
         return $this->hasProductAccess($user) && $user->branch_id !== null;
     }
 
+    public function export(User $user): bool
+    {
+        return $user->branch_id !== null && $this->hasProductAccess($user);
+    }
+
     public function update(User $user, Product $product): bool
     {
         return $this->hasProductAccess($user)

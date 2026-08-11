@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
             <div><h1 class="text-xl font-semibold text-gray-800">Inicio</h1><p class="text-sm text-gray-500">Resumen de {{ $date->translatedFormat('l d \d\e F') }}</p></div>
-            <a href="{{ route('pos.index') }}" class="mt-2 inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 sm:mt-0">Nueva venta</a>
+            <div class="mt-2 flex flex-col gap-2 sm:mt-0 sm:flex-row">@can('export', \App\Models\Product::class)<a href="{{ route('dashboard.inventory-pdf') }}" class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">PDF de abastecimiento</a>@endcan<a href="{{ route('pos.index') }}" class="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Nueva venta</a></div>
         </div>
     </x-slot>
 

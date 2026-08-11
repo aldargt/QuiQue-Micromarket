@@ -18,6 +18,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'active'])->name('dashboard');
+Route::get('/dashboard/inventory-pdf', [DashboardController::class, 'inventoryPdf'])->middleware(['auth', 'active'])->name('dashboard.inventory-pdf');
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

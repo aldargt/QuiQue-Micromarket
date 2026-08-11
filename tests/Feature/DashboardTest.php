@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Role;
 use App\Models\Sale;
 use App\Models\User;
+use App\Services\DashboardService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -130,6 +131,73 @@ class DashboardTest extends TestCase
         $this->sale($user, '25.00', [['cash', '25.00']], $product, '1.000', Carbon::create(2026, 8, 8, 23, 59, 0, 'America/La_Paz'));
 
         $this->actingAs($user)->get(route('dashboard'))->assertSee('Bs 15,00')->assertDontSee('Bs 25,00');
+    }
+
+    public function test_administrator_and_cashier_see_inventory_pdf_action(): void
+    {
+        foreach ([$this->administrator(), $this->cashier()] as $user) {
+            $this->actingAs($user)->get(route('dashboard'))->assertOk()
+                ->assertSee('PDF de abastecimiento')->assertSee(route('dashboard.inventory-pdf'), false);
+        }
+    }
+
+    public function test_cashier_can_download_inventory_pdf_but_invalid_accounts_are_rejected(): void
+    {
+        $this->actingAs($this->cashier())->get(route('dashboard.inventory-pdf'))
+            ->assertOk()->assertHeader('content-type', 'application/pdf')->assertDownload();
+        $this->actingAs($this->administrator(['branch_id' => null]))->get(route('dashboard.inventory-pdf'))->assertForbidden();
+        $this->actingAs($this->administrator(['is_active' => false]))->get(route('dashboard.inventory-pdf'))->assertRedirect(route('login'));
+    }
+
+    public function test_administrator_downloads_real_inventory_pdf_with_dashboard_data_and_branch_isolation(): void
+    {
+        $administrator = $this->administrator();
+        $top = $this->product(['name' => 'Nombre actual', 'unit' => MeasurementUnit::Kilogram]);
+        $this->sale($administrator, '25.00', [['cash', '25.00']], $top, '2.500', now(), SaleStatus::Confirmed->value, null, 'Producto histórico vendido');
+        $top->update(['name' => 'Nombre modificado', 'unit' => MeasurementUnit::Liter]);
+        $zero = $this->product(['name' => 'Producto agotado PDF', 'unit' => MeasurementUnit::Unit, 'stock' => '0.000']);
+        $low = $this->product(['name' => 'Producto bajo PDF', 'unit' => MeasurementUnit::Kilogram, 'stock' => '0.500', 'minimum_stock' => '1.000']);
+        $expiring = $this->product(['name' => 'Producto próximo PDF', 'unit' => MeasurementUnit::Liter, 'stock' => '2.500', 'expires_at' => today()->addDays(7)]);
+        $expired = $this->product(['name' => 'Producto vencido PDF', 'unit' => MeasurementUnit::Unit, 'stock' => '4.000', 'expires_at' => today()->subDay()]);
+        $foreignZero = $this->product(['name' => 'Producto agotado ajeno PDF', 'stock' => '0.000'], $this->otherBranch);
+        $stocksBefore = Product::query()->whereIn('id', [$zero->id, $low->id, $expiring->id, $expired->id])->pluck('stock', 'id')->all();
+
+        $response = $this->actingAs($administrator)->get(route('dashboard.inventory-pdf', ['branch_id' => $this->otherBranch->id]))
+            ->assertOk()->assertHeader('content-type', 'application/pdf')->assertDownload();
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+        $this->assertMatchesRegularExpression('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+792(?:\.0+)?\s+612(?:\.0+)?\s*\]/', $response->getContent());
+
+        $data = app(DashboardService::class)->forBranch($this->branch->id, today());
+        $data['branchName'] = $this->branch->name;
+        $data['generatedAt'] = now();
+        $html = view('dashboard-inventory-pdf', $data)->render();
+        $this->assertStringContainsString('Reporte de Inventario y Abastecimiento', $html);
+        $this->assertStringNotContainsString('Productos más vendidos de hoy', $html);
+        $this->assertStringNotContainsString('Producto histórico vendido', $html);
+        $this->assertStringNotContainsString('Nombre modificado', $html);
+        $this->assertStringContainsString('Productos agotados', $html);
+        $this->assertStringContainsString('Producto agotado PDF', $html);
+        $this->assertStringContainsString('0 unidades', $html);
+        $this->assertStringContainsString('Productos con stock bajo', $html);
+        $this->assertStringContainsString('Producto bajo PDF', $html);
+        $this->assertStringContainsString('0,500 kg', $html);
+        $this->assertStringContainsString('1,000 kg', $html);
+        $this->assertStringContainsString('Productos próximos a vencer', $html);
+        $this->assertStringContainsString('Producto próximo PDF', $html);
+        $this->assertStringContainsString('2,500 L', $html);
+        $this->assertStringContainsString(today()->addDays(7)->format('d/m/Y'), $html);
+        $this->assertStringContainsString('Productos vencidos', $html);
+        $this->assertStringContainsString('Producto vencido PDF', $html);
+        $this->assertStringContainsString('4 unidades', $html);
+        $this->assertStringContainsString(today()->subDay()->format('d/m/Y'), $html);
+        $this->assertStringContainsString('Zona horaria: UTC-04:00', $html);
+        $this->assertStringNotContainsString('Producto agotado ajeno PDF', $html);
+        $this->assertStringNotContainsString('Ventas confirmadas', $html);
+        $this->assertStringNotContainsString('Efectivo recibido', $html);
+        $this->assertStringNotContainsString('Pagos QR', $html);
+        $this->assertStringNotContainsString('Operaciones mixtas', $html);
+        $this->assertSame($stocksBefore, Product::query()->whereIn('id', array_keys($stocksBefore))->pluck('stock', 'id')->all());
+        $this->assertNotNull($foreignZero);
     }
 
     private function sale(User $user, string $total, array $payments, Product $product, string $quantity, mixed $confirmedAt = null, string $status = 'confirmed', ?Branch $branch = null, ?string $historicalName = null, ?string $unitPrice = null): Sale
