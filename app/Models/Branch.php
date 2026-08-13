@@ -10,11 +10,11 @@ class Branch extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'code', 'address', 'is_active'];
+    protected $fillable = ['name', 'code', 'address', 'is_active', 'raffle_ticket_threshold'];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'raffle_ticket_threshold' => 'decimal:2'];
     }
 
     public function users(): HasMany

@@ -6,20 +6,32 @@ use App\Http\Requests\StoreSaleRequest;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\PosCartService;
+use App\Services\RaffleParticipationService;
 use App\Services\SaleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PosController extends Controller
 {
-    public function index(Request $request, PosCartService $cart): View
+    public function index(Request $request, PosCartService $cart, RaffleParticipationService $raffles): View
     {
         Gate::authorize('create', Sale::class);
 
-        return view('pos.index', ['initialCart' => $cart->items($request->user())]);
+        $threshold = (string) $request->user()->branch->raffle_ticket_threshold;
+
+        return view('pos.index', ['initialCart' => $cart->items($request->user()), 'initialRaffleQuote' => $raffles->ticketCount($cart->total($request->user()), $threshold)]);
+    }
+
+    public function raffleQuote(Request $request, PosCartService $cart, RaffleParticipationService $raffles): JsonResponse
+    {
+        Gate::authorize('create', Sale::class);
+        $threshold = (string) $request->user()->branch->raffle_ticket_threshold;
+
+        return response()->json(['ticket_count' => $raffles->ticketCount($cart->total($request->user()), $threshold)]);
     }
 
     public function search(Request $request): JsonResponse
@@ -36,12 +48,28 @@ class PosController extends Controller
         return response()->json($products->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'code' => $p->displayCode(), 'unit' => $p->unit->label(), 'is_unit' => $p->unit->value === 'unit', 'price' => $p->sale_price, 'stock' => $p->stock, 'stock_label' => $p->unit->formatQuantity($p->stock)]));
     }
 
-    public function store(StoreSaleRequest $request, SaleService $service): RedirectResponse
+    public function store(StoreSaleRequest $request, SaleService $service, RaffleParticipationService $raffles): RedirectResponse
     {
         $data = $request->validated();
         $cart = app(PosCartService::class);
         $items = $cart->checkoutItems($request->user(), $data['items']);
+        $ticketCount = $raffles->ticketCount($cart->total($request->user()), (string) $request->user()->branch->raffle_ticket_threshold);
+        if ($ticketCount > 0 && ! in_array($data['raffle_decision'] ?? null, ['participate', 'decline'], true)) {
+            throw ValidationException::withMessages(['raffle_decision' => 'Indique si el cliente participará en el sorteo antes de confirmar la venta.']);
+        }
         $sale = $service->confirm($request->user(), $items, $data['payment_type'], $data['cash_received'] ?? null, $data['cash_amount'] ?? null, $data['qr_amount'] ?? null);
+        if ($sale->raffleParticipation !== null) {
+            if (($data['raffle_decision'] ?? null) === 'participate') {
+                $raffles->accept($request->user(), $sale, [
+                    'customer_id' => $data['customer_id'] ?? null,
+                    'full_name' => $data['customer_full_name'] ?? null,
+                    'phone' => $data['customer_phone'] ?? null,
+                    'ci' => $data['customer_ci'] ?? null,
+                ]);
+            } else {
+                $raffles->decline($request->user(), $sale);
+            }
+        }
         $cart->clear($request->user());
 
         return redirect()->route('sales.show', $sale)->with('status', "Venta {$sale->sale_number} confirmada correctamente.");

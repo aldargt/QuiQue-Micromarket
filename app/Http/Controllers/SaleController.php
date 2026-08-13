@@ -23,6 +23,6 @@ class SaleController extends Controller
     {
         Gate::authorize('view', $sale);
 
-        return view('sales.show', ['sale' => $sale->load(['user', 'items.product', 'payments'])]);
+        return view('sales.show', ['sale' => $sale->load(['user', 'items.product', 'payments', 'customer', 'raffleParticipation.tickets.period'])]);
     }
 }

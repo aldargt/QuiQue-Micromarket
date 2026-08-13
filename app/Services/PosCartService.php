@@ -65,6 +65,16 @@ class PosCartService
         session()->forget($this->key($user));
     }
 
+    public function total(User $user): string
+    {
+        return collect($this->items($user))->reduce(function (string $total, array $item) {
+            $price = $item['price_changed'] ? $item['observed_price'] : $item['price'];
+            $subtotal = bcadd(bcmul((string) $item['quantity'], (string) $price, 3), '0.005', 2);
+
+            return bcadd($total, $subtotal, 2);
+        }, '0.00');
+    }
+
     /** @param array<int, array{product_id:int, quantity:string}> $submitted
      * @return array<int, array{product_id:int, quantity:string, expected_price:string}>
      */

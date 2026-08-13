@@ -1,14 +1,17 @@
 <?php
 
 use App\Enums\RoleSlug;
+use App\Http\Controllers\Admin\RaffleSettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InventoryMovementController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RaffleParticipationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
@@ -45,12 +48,18 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/products', [PosController::class, 'search'])->name('pos.products.search');
+    Route::get('/pos/raffle-quote', [PosController::class, 'raffleQuote'])->name('pos.raffle.quote');
     Route::put('/pos/cart/{product}', [PosController::class, 'updateCart'])->name('pos.cart.update');
     Route::delete('/pos/cart/{product}', [PosController::class, 'removeCartItem'])->name('pos.cart.destroy');
     Route::delete('/pos/cart', [PosController::class, 'clearCart'])->name('pos.cart.clear');
     Route::post('/pos/sales', [PosController::class, 'store'])->name('pos.sales.store');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::post('/sales/{sale}/raffle/accept', [RaffleParticipationController::class, 'accept'])->name('sales.raffle.accept');
+    Route::post('/sales/{sale}/raffle/decline', [RaffleParticipationController::class, 'decline'])->name('sales.raffle.decline');
+    Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/search', [CustomerController::class, 'search'])->name('customers.search');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/pdf', [ReportController::class, 'pdf'])->name('reports.pdf');
 });
@@ -66,6 +75,7 @@ Route::prefix('admin')->name('admin.')->middleware([
     Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::put('users/{user}/password', [UserController::class, 'resetPassword'])->name('users.password.update');
+    Route::patch('raffle-settings', [RaffleSettingController::class, 'update'])->name('raffle-settings.update');
 });
 
 require __DIR__.'/auth.php';

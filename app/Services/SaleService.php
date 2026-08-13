@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class SaleService
 {
-    public function __construct(private InventoryService $inventory, private SaleNumberGenerator $numbers) {}
+    public function __construct(private InventoryService $inventory, private SaleNumberGenerator $numbers, private RaffleParticipationService $raffles) {}
 
     /** @param array<int, array{product_id:int, quantity:string, expected_price?:string}> $items */
     public function confirm(User $user, array $items, string $paymentType, ?string $cashReceived, ?string $cashAmount, ?string $qrAmount): Sale
@@ -73,8 +73,9 @@ class SaleService
             foreach ($payments as $payment) {
                 $sale->payments()->create($payment);
             }
+            $this->raffles->offer($sale, $branch->raffle_ticket_threshold);
 
-            return $sale->load(['items.product', 'payments', 'user']);
+            return $sale->load(['items.product', 'payments', 'user', 'raffleParticipation']);
         });
     }
 

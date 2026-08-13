@@ -21,6 +21,7 @@
                     <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">
                         Ventas
                     </x-nav-link>
+                    <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">Clientes y tickets</x-nav-link>
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         Reportes
                     </x-nav-link>
@@ -99,6 +100,7 @@
             <x-responsive-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.*')">
                 Ventas
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.*')">Clientes y tickets</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                 Reportes
             </x-responsive-nav-link>
