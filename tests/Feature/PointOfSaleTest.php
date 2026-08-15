@@ -140,6 +140,42 @@ class PointOfSaleTest extends TestCase
         $this->actingAs($user)->getJson(route('pos.products.search', ['search' => 'Producto']))->assertJsonMissing(['name' => 'Producto inactivo'])->assertJsonMissing(['name' => 'Producto agotado']);
     }
 
+    public function test_barcode_enter_resolves_exact_code_once_and_reuses_cart_addition(): void
+    {
+        $product = $this->product(['barcode' => '7801234567890', 'internal_code' => null]);
+        $user = $this->cashier();
+
+        $this->actingAs($user)->getJson(route('pos.products.search', ['search' => '7801234567890']))
+            ->assertOk()->assertJsonCount(1)->assertJsonPath('0.id', $product->id)->assertJsonPath('0.exact_code_match', true);
+
+        $this->get(route('pos.index'))->assertOk()
+            ->assertSee('@keydown.enter.prevent.stop="handleSearchEnter"', false)
+            ->assertSee('products.filter(product => product.exact_code_match)', false)
+            ->assertSee('this.scanQueue.push({term, generation})', false)
+            ->assertSee("this.query = ''; this.results = []; this.searched = false", false)
+            ->assertSee('await this.add(exactMatches[0], true)', false)
+            ->assertSee('this.$refs.productSearch.focus()', false);
+    }
+
+    public function test_consecutive_scans_are_queued_without_dropping_enter_or_clearing_next_input(): void
+    {
+        $response = $this->actingAs($this->cashier())->get(route('pos.index'))->assertOk();
+
+        $response->assertSee('if (this.scanProcessing) return; this.scanProcessing = true; try { while (this.scanQueue.length)', false)
+            ->assertDontSee('if (!term || this.scanProcessing) return', false)
+            ->assertSee('if (!preserveSearch)', false)
+            ->assertSee('scan.generation === this.scanGeneration', false)
+            ->assertSee('finally { this.scanProcessing = false', false);
+    }
+
+    public function test_manual_partial_search_is_not_marked_as_exact_code_match(): void
+    {
+        $this->product(['name' => 'Pan integral', 'barcode' => '7801234567890', 'internal_code' => null]);
+
+        $this->actingAs($this->cashier())->getJson(route('pos.products.search', ['search' => 'Pan']))
+            ->assertOk()->assertJsonPath('0.exact_code_match', false);
+    }
+
     public function test_cash_sale_recalculates_price_and_creates_all_related_records(): void
     {
         $product = $this->product(['name' => 'Leche', 'sale_price' => '12.50']);
