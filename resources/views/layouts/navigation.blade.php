@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="backupUi()" class="bg-white border-b border-gray-100">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -61,6 +61,10 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             Mi perfil
                         </x-dropdown-link>
+
+                        @if (Auth::user()->hasAnyRole(['administrator']))
+                            <button type="button" @click="openBackup" class="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Realizar backup</button>
+                        @endif
 
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
@@ -132,6 +136,10 @@
                     Mi perfil
                 </x-responsive-nav-link>
 
+                @if (Auth::user()->hasAnyRole(['administrator']))
+                    <button type="button" @click="openBackup" class="block w-full px-4 py-2 text-start text-base font-medium text-gray-600 hover:bg-gray-50">Realizar backup</button>
+                @endif
+
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
@@ -145,4 +153,18 @@
             </div>
         </div>
     </div>
+
+    @if (Auth::user()->hasAnyRole(['administrator']))
+        <div x-cloak x-show="backupOpen" x-transition.opacity class="fixed inset-0 z-[70] flex items-center justify-center bg-gray-900/60 p-4" role="dialog" aria-modal="true">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+                <template x-if="backupPhase === 'confirm'"><div><h3 class="text-lg font-semibold text-gray-900">Realizar backup</h3><p class="mt-3 text-sm text-gray-600">¿Está seguro de que desea realizar una copia de seguridad del sistema?</p><div class="mt-6 flex justify-end gap-3"><button type="button" @click="backupOpen=false" class="rounded-md border border-gray-300 px-4 py-2 font-semibold text-gray-700">Cancelar</button><button type="button" @click="runBackup" class="rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white">Sí, realizar backup</button></div></div></template>
+                <template x-if="backupPhase === 'loading'"><div class="py-4 text-center"><svg class="mx-auto h-10 w-10 animate-spin text-indigo-600" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg><h3 class="mt-4 text-lg font-semibold">Realizando copia de seguridad</h3><p class="mt-2 text-sm text-gray-600">Estamos realizando la copia de seguridad del sistema. Por favor, espere.</p></div></template>
+                <template x-if="backupPhase === 'result'"><div><h3 class="text-lg font-semibold" x-text="backupResult.title"></h3><p class="mt-3 whitespace-pre-line text-sm text-gray-600" x-text="backupResult.message"></p><div class="mt-6 flex justify-end"><button type="button" @click="backupOpen=false" class="rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white">Aceptar</button></div></div></template>
+            </div>
+        </div>
+    @endif
 </nav>
+<style>[x-cloak] { display: none !important; }</style>
+<script>
+    function backupUi() { return { open: false, backupOpen: false, backupPhase: 'confirm', backupResult: {}, openBackup() { this.backupPhase='confirm'; this.backupOpen=true; }, async runBackup() { if(this.backupPhase==='loading') return; this.backupPhase='loading'; try { const response=await fetch(@js(route('admin.backup.store')), {method:'POST',headers:{'Accept':'application/json','X-CSRF-TOKEN':@js(csrf_token())}}); this.backupResult=response.ok?await response.json():{title:'No se pudo realizar el backup',message:'No fue posible generar el respaldo local.'}; } catch(error) { this.backupResult={title:'No se pudo realizar el backup',message:'No fue posible generar el respaldo local.'}; } this.backupPhase='result'; } } }
+</script>

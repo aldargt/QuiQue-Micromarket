@@ -1,8 +1,10 @@
 <?php
 
 use App\Enums\RoleSlug;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\RaffleSettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AutomaticBackupController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -22,6 +24,11 @@ Route::get('/', function () {
 
 Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'active'])->name('dashboard');
 Route::get('/dashboard/inventory-pdf', [DashboardController::class, 'inventoryPdf'])->middleware(['auth', 'active'])->name('dashboard.inventory-pdf');
+
+Route::middleware(['auth', 'active'])->group(function () {
+    Route::get('/backup/automatic', [AutomaticBackupController::class, 'show'])->name('backup.automatic.show');
+    Route::post('/backup/automatic', [AutomaticBackupController::class, 'store'])->name('backup.automatic.store');
+});
 
 Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -76,6 +83,7 @@ Route::prefix('admin')->name('admin.')->middleware([
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::put('users/{user}/password', [UserController::class, 'resetPassword'])->name('users.password.update');
     Route::patch('raffle-settings', [RaffleSettingController::class, 'update'])->name('raffle-settings.update');
+    Route::post('backup', [BackupController::class, 'store'])->name('backup.store');
 });
 
 require __DIR__.'/auth.php';

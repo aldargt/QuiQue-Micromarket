@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\AutomaticBackupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,11 +23,17 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, AutomaticBackupService $backups): RedirectResponse
     {
         $request->authenticate();
 
         $request->session()->regenerate();
+
+        if ($backups->isDue()) {
+            $request->session()->put('backup.return_url', route('dashboard'));
+
+            return redirect()->route('backup.automatic.show');
+        }
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
