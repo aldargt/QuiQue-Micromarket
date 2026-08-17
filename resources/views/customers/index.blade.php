@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-800">Clientes y tickets</h2>
             @if(auth()->user()->hasAnyRole(['administrator']))
-                <button type="button" x-data @click="$dispatch('open-raffle-settings')" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white">Configurar umbral de tickets</button>
+                <button type="button" x-data @click="$dispatch('open-raffle-settings')" class="ui-button-primary">Configurar umbral de tickets</button>
             @endif
         </div>
     </x-slot>

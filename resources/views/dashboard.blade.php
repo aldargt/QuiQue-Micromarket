@@ -1,17 +1,17 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div><h1 class="text-xl font-semibold text-gray-800">Inicio</h1><p class="text-sm text-gray-500">Resumen de {{ $date->translatedFormat('l d \d\e F') }}</p></div>
-            <div class="mt-2 flex flex-col gap-2 sm:mt-0 sm:flex-row">@can('export', \App\Models\Product::class)<a href="{{ route('dashboard.inventory-pdf') }}" class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">PDF de abastecimiento</a>@endcan<a href="{{ route('pos.index') }}" class="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Nueva venta</a></div>
+            <div><h1 class="text-2xl font-bold tracking-tight text-gray-900">Inicio</h1><p class="mt-1 text-sm text-gray-500">Resumen de {{ $date->translatedFormat('l d \d\e F') }}</p></div>
+            <div class="mt-2 flex flex-col gap-2 sm:mt-0 sm:flex-row">@can('export', \App\Models\Product::class)<a href="{{ route('dashboard.inventory-pdf') }}" class="ui-button-secondary">PDF de abastecimiento</a>@endcan<a href="{{ route('pos.index') }}" class="ui-button-primary">Nueva venta</a></div>
         </div>
     </x-slot>
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
             <section aria-labelledby="sales-summary-title">
-                <div class="mb-3 flex items-center justify-between"><h2 id="sales-summary-title" class="text-lg font-semibold text-gray-900">Ventas de hoy</h2><a href="{{ route('sales.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Ver historial</a></div>
+                <div class="mb-3 flex items-center justify-between"><h2 id="sales-summary-title" class="text-lg font-bold text-gray-900">Ventas de hoy</h2><a href="{{ route('sales.index') }}" class="ui-link text-sm">Ver historial</a></div>
                 <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <a href="{{ route('sales.index') }}" class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200 hover:ring-indigo-300"><p class="text-sm font-medium text-gray-500">Ventas confirmadas</p><p class="mt-2 text-3xl font-bold text-gray-900">{{ $salesCount }}</p><p class="mt-1 text-sm text-gray-600">Bs {{ number_format((float) $salesTotal, 2, ',', '.') }} vendidos hoy</p></a>
+                    <a href="{{ route('sales.index') }}" class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-md"><p class="text-sm font-medium text-gray-500">Ventas confirmadas</p><p class="mt-2 text-3xl font-bold text-gray-900">{{ $salesCount }}</p><p class="mt-1 text-sm text-gray-600">Bs {{ number_format((float) $salesTotal, 2, ',', '.') }} vendidos hoy</p></a>
                     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Efectivo recibido</p><p class="mt-2 text-3xl font-bold text-emerald-700">Bs {{ number_format((float) $cashTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $cashCount }} {{ $cashCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Incluye pagos mixtos.</p></div>
                     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Pagos QR</p><p class="mt-2 text-3xl font-bold text-cyan-700">Bs {{ number_format((float) $qrTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $qrCount }} {{ $qrCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Incluye pagos mixtos.</p></div>
                     <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Ventas con pago mixto</p><p class="mt-2 text-3xl font-bold text-violet-700">Bs {{ number_format((float) $mixedTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $mixedCount }} {{ $mixedCount === 1 ? 'operación' : 'operaciones' }}</p><p class="mt-1 text-xs text-gray-500">Operaciones con ambos métodos.</p></div>
@@ -20,8 +20,8 @@
             </section>
 
             <div class="grid gap-6 xl:grid-cols-5">
-                <section class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 xl:col-span-3" aria-labelledby="top-products-title">
-                    <div class="flex items-center justify-between border-b p-5"><div><h2 id="top-products-title" class="font-semibold text-gray-900">Productos más vendidos hoy</h2><p class="text-sm text-gray-500">Basado en los datos históricos de cada venta.</p></div><a href="{{ route('sales.index') }}" class="text-sm font-semibold text-indigo-600">Ver ventas</a></div>
+                <section class="self-start overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200 xl:col-span-3" aria-labelledby="top-products-title">
+                    <div class="flex items-center justify-between border-b border-slate-100 p-5"><div><h2 id="top-products-title" class="font-bold text-gray-900">Productos más vendidos hoy</h2><p class="text-sm text-gray-500">Basado en los datos históricos de cada venta.</p></div><a href="{{ route('sales.index') }}" class="ui-link text-sm">Ver ventas</a></div>
                     <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-5 py-3 text-left text-xs font-semibold uppercase text-gray-500">Producto</th><th class="px-5 py-3 text-right text-xs font-semibold uppercase text-gray-500">Cantidad</th><th class="px-5 py-3 text-right text-xs font-semibold uppercase text-gray-500">Importe</th></tr></thead><tbody class="divide-y divide-gray-100">@forelse ($topProducts as $item)<tr><td class="px-5 py-3 font-medium text-gray-900">{{ $item->product_name }}</td><td class="px-5 py-3 text-right text-gray-700">{{ $item->quantity_display }}</td><td class="px-5 py-3 text-right font-medium text-gray-900">Bs {{ number_format((float) $item->amount_generated, 2, ',', '.') }}</td></tr>@empty<tr><td colspan="3" class="p-8 text-center text-gray-500">Todavía no existen ventas confirmadas hoy.</td></tr>@endforelse</tbody></table></div>
                 </section>
 

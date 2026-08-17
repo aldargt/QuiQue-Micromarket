@@ -1,7 +1,7 @@
 <x-guest-layout>
-    <div class="mb-6 text-center">
-        <h1 class="text-2xl font-semibold text-gray-900">Iniciar sesión</h1>
-        <p class="mt-1 text-sm text-gray-600">Sistema - QuiQue Micromarket</p>
+    <div class="mb-7 text-center">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Iniciar sesión</h1>
+        <p class="mt-2 text-sm text-gray-500">Sistema de gestión · QuiQue Micromarket</p>
     </div>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -31,14 +31,14 @@
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
+                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-cyan-600 shadow-sm focus:ring-cyan-500" name="remember">
                 <span class="ms-2 text-sm text-gray-600">Recordarme</span>
             </label>
         </div>
 
         <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                <a class="rounded-md text-sm font-semibold text-cyan-700 hover:text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2" href="{{ route('password.request') }}">
                     ¿Olvidaste tu contraseña?
                 </a>
             @endif

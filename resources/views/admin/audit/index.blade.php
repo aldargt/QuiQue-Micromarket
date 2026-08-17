@@ -4,7 +4,7 @@
         <div class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Registro de operaciones sensibles realizadas sobre productos y ventas.</div>
         <div class="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50"><tr>@foreach (['Fecha y hora', 'Usuario', 'Acción', 'Módulo', 'Registro', 'Detalle'] as $heading)<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{{ $heading }}</th>@endforeach</tr></thead>
+                <thead class="bg-gray-50"><tr>@foreach (['Fecha y hora', 'Responsable', 'Acción', 'Módulo', 'Registro', 'Detalle'] as $heading)<th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">{{ $heading }}</th>@endforeach</tr></thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse ($logs as $log)
                         @php

@@ -66,6 +66,45 @@ class DashboardTest extends TestCase
             ->assertDontSee('Juan Carlos PÃ©rez');
     }
 
+    public function test_navigation_is_grouped_by_area_and_preserves_role_visibility(): void
+    {
+        $administratorResponse = $this->actingAs($this->administrator())->get(route('dashboard'))->assertOk();
+        $administratorResponse
+            ->assertSeeInOrder(['Inicio', 'Operaciones', 'Productos', 'Reportes', 'Administraci'])
+            ->assertSee(asset('images/quique-logo.png'), false)
+            ->assertSee(asset('images/quique-favicon.png'), false)
+            ->assertSee('rotate-180', false)
+            ->assertSee('rounded-full', false)
+            ->assertSee('data-theme-toggle', false)
+            ->assertSee('window.toggleTheme()', false)
+            ->assertSee(route('pos.index'), false)
+            ->assertSee(route('sales.index'), false)
+            ->assertSee(route('customers.index'), false)
+            ->assertSee(route('products.index'), false)
+            ->assertSee(route('categories.index'), false)
+            ->assertSee(route('inventory.index'), false)
+            ->assertSee(route('reports.index'), false)
+            ->assertSee(route('admin.users.index'), false)
+            ->assertSee(route('admin.audit.index'), false)
+            ->assertSee('@click="operationsOpen = ! operationsOpen"', false)
+            ->assertSee('@click="productsOpen = ! productsOpen"', false)
+            ->assertSee('@click="administrationOpen = ! administrationOpen"', false);
+
+        $cashierResponse = $this->actingAs($this->cashier())->get(route('dashboard'))->assertOk();
+        $cashierResponse
+            ->assertSeeInOrder(['Inicio', 'Operaciones', 'Productos', 'Reportes'])
+            ->assertSee(route('pos.index'), false)
+            ->assertSee(route('sales.index'), false)
+            ->assertSee(route('customers.index'), false)
+            ->assertSee(route('products.index'), false)
+            ->assertSee(route('inventory.index'), false)
+            ->assertSee(route('reports.index'), false)
+            ->assertDontSee(route('categories.index'), false)
+            ->assertDontSee(route('admin.users.index'), false)
+            ->assertDontSee(route('admin.audit.index'), false)
+            ->assertDontSee('@click="administrationOpen = ! administrationOpen"', false);
+    }
+
     public function test_dashboard_calculates_confirmed_daily_sales_and_payment_breakdown(): void
     {
         $user = $this->cashier();

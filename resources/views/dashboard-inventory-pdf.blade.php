@@ -56,6 +56,6 @@
         </tbody></table>
     </section>
 
-    <p class="footer">Documento generado por Sistema - QuiQue Micromarket.</p>
+    <p class="footer">Documento generado por QuiQue Micromarket.</p>
 </body>
 </html>

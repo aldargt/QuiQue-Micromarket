@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header"><h2 class="font-semibold text-xl text-gray-800">Punto de venta</h2></x-slot>
+    <x-slot name="header"><div><h1 class="text-2xl font-bold tracking-tight text-gray-900">Punto de venta</h1><p class="mt-1 text-sm text-gray-500">Busca productos, prepara el cobro y confirma la venta.</p></div></x-slot>
 
     <div class="py-8" x-data="pos()" @keydown.escape.window="closeModals()">
         <form method="POST" action="{{ route('pos.sales.store') }}" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" @submit="submitting = true">
@@ -7,7 +7,7 @@
             @if (session('status'))<div class="mb-5 rounded-md bg-green-50 p-4 text-green-800">{{ session('status') }}</div>@endif
             <div class="grid gap-6 lg:grid-cols-5">
                 <section class="lg:col-span-3 space-y-4">
-                    <div class="bg-white p-5 shadow-sm sm:rounded-lg">
+                    <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                         <label for="product-search" class="font-medium text-gray-800">Buscar o escanear producto</label>
                         <input id="product-search" x-ref="productSearch" x-model="query" @input.debounce.250ms="search" @keydown.enter.prevent.stop="handleSearchEnter" autofocus autocomplete="off" placeholder="Nombre, código de barras o código interno" class="mt-2 block w-full rounded-md border-gray-300">
                         <p class="mt-1 text-sm text-gray-500">Escriba un nombre o escanee el código y presione Enter.</p>
@@ -22,7 +22,7 @@
                         <p x-show="searched && !results.length" class="mt-3 text-sm text-gray-600">No se encontraron productos activos con stock.</p>
                     </div>
 
-                    <div class="bg-white shadow-sm sm:rounded-lg overflow-hidden">
+                    <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                         <div class="flex items-center justify-between gap-4 p-5 border-b"><h3 class="font-semibold">Productos de la venta</h3><button type="button" x-show="cart.length" @click="openClearModal" class="text-sm font-semibold text-red-600 hover:text-red-800">Vaciar carrito</button></div>
                         <p x-show="!cart.length" class="p-8 text-center text-gray-500">Busque un producto para comenzar.</p>
                         <div class="divide-y">
@@ -45,8 +45,8 @@
                 </section>
 
                 <aside class="lg:col-span-2">
-                    <div class="space-y-4 bg-white p-5 shadow-sm sm:rounded-lg lg:sticky lg:top-4">
-                        <div class="flex justify-between text-2xl font-bold"><span>Total</span><span x-text="money(total)"></span></div>
+                    <div class="space-y-5 rounded-xl border border-cyan-200 bg-white p-5 shadow-md lg:sticky lg:top-4">
+                        <div class="flex justify-between border-b border-slate-100 pb-4 text-2xl font-bold"><span>Total</span><span class="text-cyan-700" x-text="money(total)"></span></div>
                         <div>
                             <label class="font-medium">Forma de pago</label>
                             <select name="payment_type" x-model="payment" class="mt-2 block w-full rounded-md border-gray-300">
@@ -74,7 +74,7 @@
                             <input type="hidden" name="customer_ci" :value="selectedCustomer ? '' : customerCi">
                         </div>
                         @if ($errors->any())<div class="rounded-md bg-red-50 p-3 text-sm text-red-700"><ul class="list-disc pl-5">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-                        <button type="submit" :disabled="!canSubmit || submitting" class="w-full rounded-md bg-indigo-600 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50" x-text="submitting ? 'Confirmando…' : 'Confirmar venta'"></button>
+                        <button type="submit" :disabled="!canSubmit || submitting" class="w-full rounded-lg bg-cyan-600 px-4 py-3 font-semibold text-white shadow-sm transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50" x-text="submitting ? 'Confirmando…' : 'Confirmar venta'"></button>
                     </div>
                 </aside>
             </div>

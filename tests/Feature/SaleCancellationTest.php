@@ -136,6 +136,9 @@ class SaleCancellationTest extends TestCase
         $this->actingAs($user)->get(route('customers.show', $customer))->assertOk()
             ->assertSeeInOrder(['Tickets mostrados', (string) $ticketCount, 'Tickets válidos', '0', 'Tickets anulados', (string) $ticketCount])
             ->assertSee('Anulado')->assertSee('bg-red-100', false);
+        $this->actingAs($user)->get(route('sales.show', $sale))->assertOk()
+            ->assertSee('Anulado')
+            ->assertSee('line-through', false);
     }
 
     public function test_cancelled_sale_is_historical_but_excluded_from_dashboard_reports_and_charts(): void

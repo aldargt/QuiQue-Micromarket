@@ -69,10 +69,10 @@
     </tbody></table>
 
     <h2>Detalle de ventas confirmadas</h2>
-    <table class="data"><thead><tr><th>Número de venta</th><th>Fecha y hora</th><th>Cajero</th><th>Pago</th><th class="right">Total</th><th class="center">Estado</th></tr></thead><tbody>
+    <table class="data"><thead><tr><th>Número de venta</th><th>Fecha y hora</th><th>Responsable</th><th>Pago</th><th class="right">Total</th><th class="center">Estado</th></tr></thead><tbody>
         @forelse ($sales as $sale)<tr><td>{{ $sale->sale_number }}</td><td>{{ $sale->confirmed_at->format('d/m/Y H:i') }}</td><td>{{ $sale->user->name }}</td><td>{{ $sale->paymentLabel() }}</td><td class="right">Bs {{ number_format((float) $sale->total, 2, ',', '.') }}</td><td class="center">{{ $sale->status->label() }}</td></tr>@empty<tr><td colspan="6" class="empty">No existen ventas confirmadas en el período seleccionado.</td></tr>@endforelse
     </tbody></table>
 
-    <p class="footer">Documento generado por Sistema - QuiQue Micromarket.</p>
+    <p class="footer">Documento generado por QuiQue Micromarket.</p>
 </body>
 </html>

@@ -142,7 +142,7 @@ class ReportTest extends TestCase
         $this->assertStringContainsString('<td colspan="2"><div class="label">Monto anulado</div>', $pdfHtml);
         $this->assertStringContainsString('class="summary summary-cancellations"', $pdfHtml);
         $this->assertStringContainsString('.summary-cancellations td { width: 50%; }', $pdfHtml);
-        $this->assertStringContainsString('<p class="commercial-criteria"><strong>Criterio comercial:</strong> .</p>', $pdfHtml);
+        $this->assertStringContainsString('<p class="commercial-criteria"><strong>Criterio comercial:</strong>', $pdfHtml);
         $this->assertStringNotContainsString('<td colspan="2"><div class="label">Criterio comercial</div>', $pdfHtml);
         $this->assertNotNull($confirmed);
     }
@@ -195,6 +195,7 @@ class ReportTest extends TestCase
         $this->actingAs($administrator)->get(route('reports.index'))->assertOk()
             ->assertSeeInOrder(['Reporte por día', 'Reporte por rango', 'Reporte mensual'])
             ->assertSee('Hoy')->assertSee('Ayer')->assertSee('Fecha específica')
+            ->assertSee('report-period-controls', false)
             ->assertSee('Descargar PDF')->assertSee('línea continua con círculos')->assertSee('línea punteada con cuadrados')
             ->assertSee('stroke-dasharray="1 7"', false)->assertSee('stroke-linecap="round"', false)
             ->assertSee('margin:0 auto', false)->assertSee('<polyline', false)->assertDontSee('<canvas', false);

@@ -1,4 +1,4 @@
-# Sistema - QuiQue Micromarket
+# QuiQue Micromarket
 
 Fundación técnica del POS e inventario construida con Laravel 12, PHP 8.2,
 MySQL/MariaDB, Blade, Tailwind CSS y JavaScript.
