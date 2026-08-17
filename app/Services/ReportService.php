@@ -23,6 +23,10 @@ class ReportService
         $sales = $this->confirmedSales($branchId, $period['start'], $period['endExclusive']);
 
         $summary = $this->summaries->forPeriod($branchId, $period['start'], $period['endExclusive']);
+        $cancelledSales = Sale::query()->where('branch_id', $branchId)
+            ->where('status', SaleStatus::Cancelled->value)
+            ->where('confirmed_at', '>=', $period['start'])
+            ->where('confirmed_at', '<', $period['endExclusive']);
 
         $products = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
@@ -43,6 +47,8 @@ class ReportService
             'filters' => $period['filters'],
             'periodLabel' => $period['label'],
             ...$summary,
+            'cancelledSalesCount' => (clone $cancelledSales)->count(),
+            'cancelledSalesTotal' => (string) ((clone $cancelledSales)->sum('total') ?: '0.00'),
             'products' => $products,
             'dailySummary' => $dailySummary,
             'chartData' => $this->chartData($sales, $period, $dailySummary),

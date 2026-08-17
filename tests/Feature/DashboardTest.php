@@ -40,8 +40,8 @@ class DashboardTest extends TestCase
         $this->otherBranch = Branch::factory()->create(['code' => 'OTRA']);
         $this->category = Category::factory()->create(['branch_id' => $this->branch]);
         $this->otherCategory = Category::factory()->create(['branch_id' => $this->otherBranch]);
-        $this->administratorRole = Role::factory()->create(['slug' => RoleSlug::Administrator->value]);
-        $this->cashierRole = Role::factory()->create(['slug' => RoleSlug::Cashier->value]);
+        $this->administratorRole = Role::factory()->create(['name' => 'Administrador', 'slug' => RoleSlug::Administrator->value]);
+        $this->cashierRole = Role::factory()->create(['name' => 'Cajero', 'slug' => RoleSlug::Cashier->value]);
     }
 
     public function test_administrator_and_cashier_can_access_but_inactive_and_branchless_users_cannot(): void
@@ -51,6 +51,19 @@ class DashboardTest extends TestCase
         }
         $this->actingAs($this->cashier(['is_active' => false]))->get(route('dashboard'))->assertRedirect(route('login'));
         $this->actingAs($this->administrator(['branch_id' => null]))->get(route('dashboard'))->assertForbidden();
+    }
+
+    public function test_profile_trigger_displays_first_name_and_neutral_area_label_without_repeating_them_in_dropdown(): void
+    {
+        $administrator = $this->administrator(['name' => 'Ronny Aldair Huarachi']);
+        $cashier = $this->cashier(['name' => 'Juan Carlos PÃ©rez']);
+
+        $this->actingAs($administrator)->get(route('dashboard'))->assertOk()
+            ->assertSeeInOrder(['Ronny', 'Administración'])
+            ->assertDontSee('Ronny Aldair Huarachi');
+        $this->actingAs($cashier)->get(route('dashboard'))->assertOk()
+            ->assertSeeInOrder(['Juan', 'Cajas'])
+            ->assertDontSee('Juan Carlos PÃ©rez');
     }
 
     public function test_dashboard_calculates_confirmed_daily_sales_and_payment_breakdown(): void
@@ -70,6 +83,20 @@ class DashboardTest extends TestCase
             ->assertSeeInOrder(['Pagos QR', 'Bs 40,00', '2 operaciones'])
             ->assertSeeInOrder(['Ventas con pago mixto', 'Bs 30,00', '1 operación'])
             ->assertDontSee('Bs 99,00')->assertDontSee('Bs 77,00');
+    }
+
+    public function test_dashboard_shows_cancelled_sales_separately_without_affecting_income(): void
+    {
+        $user = $this->administrator();
+        $product = $this->product();
+        $this->sale($user, '25.00', [['cash', '25.00']], $product, '1.000');
+        $this->sale($user, '40.00', [['cash', '40.00']], $product, '1.000', now(), SaleStatus::Cancelled->value);
+        $this->sale($user, '90.00', [['cash', '90.00']], $product, '1.000', now()->subDay(), SaleStatus::Cancelled->value);
+
+        $this->actingAs($user)->get(route('dashboard'))->assertOk()
+            ->assertSeeInOrder(['Ventas confirmadas', '>1<', 'Bs 25,00'], false)
+            ->assertSeeInOrder(['Ventas anuladas hoy: 1', 'Monto anulado: Bs 40,00'])
+            ->assertDontSee('Monto anulado: Bs 90,00');
     }
 
     public function test_top_products_use_historical_names_quantities_and_amounts(): void

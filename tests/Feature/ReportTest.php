@@ -106,6 +106,47 @@ class ReportTest extends TestCase
             ->assertSeeInOrder(['Pagos mixtos', '>1<', 'Bs 30,00'], false);
     }
 
+    public function test_cancelled_metrics_work_for_day_range_and_month_without_affecting_income(): void
+    {
+        $user = $this->administrator();
+        $product = $this->product();
+        $confirmed = $this->sale($user, $product, '25.00', [['cash', '25.00']], confirmedAt: Carbon::create(2026, 8, 10, 9, 0, 0, 'America/La_Paz'));
+        $cancelled = $this->sale($user, $product, '40.00', [['cash', '40.00']], confirmedAt: Carbon::create(2026, 8, 10, 10, 0, 0, 'America/La_Paz'));
+        $cancelled->update(['status' => SaleStatus::Cancelled]);
+
+        foreach ([
+            ['period' => 'date', 'date' => '2026-08-10'],
+            ['period' => 'range', 'start' => '2026-08-09', 'end' => '2026-08-11'],
+            ['period' => 'month', 'month' => '2026-08'],
+        ] as $filters) {
+            $data = app(ReportService::class)->forBranch($this->branch->id, $filters, false);
+            $this->assertSame(1, $data['salesCount']);
+            $this->assertSame(25.0, (float) $data['salesTotal']);
+            $this->assertSame(1, $data['cancelledSalesCount']);
+            $this->assertSame(40.0, (float) $data['cancelledSalesTotal']);
+            $this->assertSame(1, array_sum($data['chartData']['sales']));
+        }
+
+        $this->actingAs($user)->get(route('reports.index', ['period' => 'date', 'date' => '2026-08-10']))->assertOk()
+            ->assertSee('Ventas anuladas: 1')->assertSee('Monto anulado: Bs 40,00')->assertSee('Bs 25,00 vendidos');
+        $this->actingAs($user)->get(route('reports.pdf', ['period' => 'date', 'date' => '2026-08-10']))
+            ->assertOk()->assertHeader('content-type', 'application/pdf');
+        $pdfData = app(ReportService::class)->forBranch($this->branch->id, ['period' => 'date', 'date' => '2026-08-10'], false);
+        $pdfData['branchName'] = $this->branch->name;
+        $pdfData['generatedAt'] = now();
+        $pdfHtml = view('reports.pdf', $pdfData)->render();
+        $this->assertStringContainsString('Ventas anuladas', $pdfHtml);
+        $this->assertStringContainsString('Monto anulado', $pdfHtml);
+        $this->assertStringContainsString('Bs 40,00', $pdfHtml);
+        $this->assertStringContainsString('<td colspan="2"><div class="label">Ventas anuladas</div>', $pdfHtml);
+        $this->assertStringContainsString('<td colspan="2"><div class="label">Monto anulado</div>', $pdfHtml);
+        $this->assertStringContainsString('class="summary summary-cancellations"', $pdfHtml);
+        $this->assertStringContainsString('.summary-cancellations td { width: 50%; }', $pdfHtml);
+        $this->assertStringContainsString('<p class="commercial-criteria"><strong>Criterio comercial:</strong> .</p>', $pdfHtml);
+        $this->assertStringNotContainsString('<td colspan="2"><div class="label">Criterio comercial</div>', $pdfHtml);
+        $this->assertNotNull($confirmed);
+    }
+
     public function test_only_confirmed_sales_from_authenticated_users_branch_are_reported(): void
     {
         $user = $this->cashier();

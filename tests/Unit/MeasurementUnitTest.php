@@ -27,4 +27,11 @@ class MeasurementUnitTest extends TestCase
             'liters' => [MeasurementUnit::Liter, '2.500', '2,500 L'],
         ];
     }
+
+    public function test_input_quantity_format_matches_commercial_unit(): void
+    {
+        $this->assertSame('10', MeasurementUnit::Unit->formatInputQuantity('10.000'));
+        $this->assertSame('10.5', MeasurementUnit::Kilogram->formatInputQuantity('10.500'));
+        $this->assertSame('0.125', MeasurementUnit::Liter->formatInputQuantity('0.125'));
+    }
 }

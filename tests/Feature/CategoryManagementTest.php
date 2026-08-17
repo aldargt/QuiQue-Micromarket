@@ -35,18 +35,14 @@ class CategoryManagementTest extends TestCase
         ]);
     }
 
-    public function test_administrator_and_cashier_can_list_and_search_categories(): void
+    public function test_only_administrator_can_list_and_search_categories(): void
     {
         Category::factory()->create(['branch_id' => $this->branch->id, 'name' => 'Bebidas']);
         Category::factory()->create(['branch_id' => $this->branch->id, 'name' => 'Panadería']);
 
-        foreach ([$this->administrator(), $this->cashier()] as $user) {
-            $this->actingAs($user)
-                ->get(route('categories.index', ['search' => 'Bebi']))
-                ->assertOk()
-                ->assertSee('Bebidas')
-                ->assertDontSee('Panadería');
-        }
+        $this->actingAs($this->administrator())->get(route('categories.index', ['search' => 'Bebi']))
+            ->assertOk()->assertSee('Bebidas')->assertDontSee('Panadería');
+        $this->actingAs($this->cashier())->get(route('categories.index'))->assertForbidden();
     }
 
     public function test_administrator_can_create_category_and_cashier_cannot(): void
@@ -91,16 +87,13 @@ class CategoryManagementTest extends TestCase
         $this->assertTrue($category->fresh()->is_active);
     }
 
-    public function test_cashier_category_list_hides_mutation_controls(): void
+    public function test_cashier_navigation_hides_category_module_but_product_selector_still_works(): void
     {
         $category = Category::factory()->create(['branch_id' => $this->branch->id]);
 
-        $this->actingAs($this->cashier())->get(route('categories.index'))
-            ->assertOk()
-            ->assertSee($category->name)
-            ->assertDontSee('Crear categoría')
-            ->assertDontSee('Editar')
-            ->assertDontSee('Desactivar');
+        $cashier = $this->cashier();
+        $this->actingAs($cashier)->get(route('dashboard'))->assertOk()->assertDontSee('Categorías');
+        $this->actingAs($cashier)->get(route('products.create'))->assertOk()->assertSee($category->name);
     }
 
     public function test_duplicate_names_are_rejected_after_whitespace_and_case_normalization(): void

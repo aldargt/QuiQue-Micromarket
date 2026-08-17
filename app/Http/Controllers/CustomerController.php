@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RaffleTicketStatus;
 use App\Models\Customer;
 use App\Services\RafflePeriodService;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,9 @@ class CustomerController extends Controller
     {
         Gate::authorize('viewAny', Customer::class);
         $search = trim((string) $request->query('search'));
-        $customers = $this->query($request, $search)->withCount('tickets')->orderByDesc('tickets_count')->orderBy('full_name')->paginate(20)->withQueryString();
+        $customers = $this->query($request, $search)
+            ->withCount(['tickets' => fn ($query) => $query->where('status', '!=', RaffleTicketStatus::Cancelled->value)])
+            ->orderByDesc('tickets_count')->orderBy('full_name')->paginate(20)->withQueryString();
 
         return view('customers.index', ['customers' => $customers, 'search' => $search, 'branch' => $request->user()->branch]);
     }
@@ -36,10 +39,13 @@ class CustomerController extends Controller
         Gate::authorize('view', $customer);
         $periods->expirePastTickets($customer->branch_id, now());
         $periodId = $request->integer('period') ?: null;
-        $tickets = $customer->tickets()->with(['sale', 'period'])->when($periodId, fn ($q) => $q->where('raffle_period_id', $periodId))->latest()->paginate(30)->withQueryString();
+        $ticketQuery = $customer->tickets()->when($periodId, fn ($query) => $query->where('raffle_period_id', $periodId));
+        $validTicketsCount = (clone $ticketQuery)->where('status', RaffleTicketStatus::Active->value)->count();
+        $cancelledTicketsCount = (clone $ticketQuery)->where('status', RaffleTicketStatus::Cancelled->value)->count();
+        $tickets = $ticketQuery->with(['sale', 'period'])->latest()->paginate(30)->withQueryString();
         $periods = $customer->tickets()->with('period')->get()->pluck('period')->unique('id')->sortByDesc('starts_on')->values();
 
-        return view('customers.show', compact('customer', 'tickets', 'periods', 'periodId'));
+        return view('customers.show', compact('customer', 'tickets', 'periods', 'periodId', 'validTicketsCount', 'cancelledTicketsCount'));
     }
 
     private function query(Request $request, string $search)

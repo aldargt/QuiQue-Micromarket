@@ -28,9 +28,6 @@ class CategoryPolicy
 
     private function hasCategoryAccess(User $user): bool
     {
-        return $user->hasAnyRole([
-            RoleSlug::Administrator->value,
-            RoleSlug::Cashier->value,
-        ]);
+        return $user->hasAnyRole([RoleSlug::Administrator->value]);
     }
 }

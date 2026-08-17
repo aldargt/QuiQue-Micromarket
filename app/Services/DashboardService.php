@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\SaleStatus;
 use App\Models\Product;
+use App\Models\Sale;
 use App\Models\SaleItem;
 use Carbon\CarbonInterface;
 
@@ -17,6 +18,9 @@ class DashboardService
         $start = $day->copy()->startOfDay();
         $endExclusive = $day->copy()->addDay()->startOfDay();
         $summary = $this->summaries->forPeriod($branchId, $start, $endExclusive);
+        $cancelledSales = Sale::query()->where('branch_id', $branchId)
+            ->where('status', SaleStatus::Cancelled->value)
+            ->where('confirmed_at', '>=', $start)->where('confirmed_at', '<', $endExclusive);
 
         $topProducts = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
@@ -42,6 +46,8 @@ class DashboardService
         return [
             'date' => $day,
             ...$summary,
+            'cancelledSalesCount' => (clone $cancelledSales)->count(),
+            'cancelledSalesTotal' => (string) ((clone $cancelledSales)->sum('total') ?: '0.00'),
             'topProducts' => $topProducts,
             'zeroStockCount' => (clone $zeroStock)->count(),
             'zeroStockProducts' => $zeroStock->orderBy('name')->limit(6)->get(),

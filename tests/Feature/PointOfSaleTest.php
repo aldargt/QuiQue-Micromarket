@@ -76,7 +76,7 @@ class PointOfSaleTest extends TestCase
         $product = $this->product();
         $this->actingAs($user)->putJson(route('pos.cart.update', $product), ['quantity' => '5'])->assertOk();
 
-        foreach (['products.index', 'inventory.index', 'categories.index', 'sales.index'] as $route) {
+        foreach (['products.index', 'inventory.index', 'sales.index'] as $route) {
             $this->get(route($route))->assertOk();
             $this->get(route('pos.index'))->assertOk()->assertSee($product->name);
             $this->assertSame('5', app(PosCartService::class)->items($user)[0]['quantity']);

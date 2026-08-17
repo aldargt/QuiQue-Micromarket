@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MeasurementUnit;
+use App\Enums\RoleSlug;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductPriceHistory;
+use App\Services\AuditService;
 use App\Services\ProductBarcodeGuard;
 use App\Services\ProductCodeGenerator;
 use Illuminate\Database\Eloquent\Collection;
@@ -69,17 +71,23 @@ class ProductController extends Controller
         StoreProductRequest $request,
         ProductCodeGenerator $codeGenerator,
         ProductBarcodeGuard $barcodeGuard,
+        AuditService $audit,
     ): RedirectResponse {
-        DB::transaction(function () use ($request, $codeGenerator, $barcodeGuard): void {
+        DB::transaction(function () use ($request, $codeGenerator, $barcodeGuard, $audit): void {
             Branch::query()->whereKey($request->user()->branch_id)->lockForUpdate()->firstOrFail();
             $barcodeGuard->ensureAvailable($request->user()->branch_id, $request->validated('barcode'));
 
-            Product::query()->create([
+            $product = Product::query()->create([
                 ...$request->validated(),
                 'branch_id' => $request->user()->branch_id,
                 'internal_code' => $request->validated('barcode') === null ? $codeGenerator->generate() : null,
                 'is_active' => true,
                 'created_by' => $request->user()->id,
+            ]);
+            $audit->record($request->user(), 'Producto creado', $product, null, [
+                'name' => $product->name,
+                'purchase_price' => $product->purchase_price,
+                'sale_price' => $product->sale_price,
             ]);
         });
 
@@ -112,26 +120,30 @@ class ProductController extends Controller
         DB::transaction(function () use ($request, $product, $barcodeGuard, $codeGenerator): void {
             Branch::query()->whereKey($product->branch_id)->lockForUpdate()->firstOrFail();
             $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
-            if ($lockedProduct->is_active) {
+            $cashier = $request->user()->hasAnyRole([RoleSlug::Cashier->value]);
+            if (! $cashier && $lockedProduct->is_active) {
                 $barcodeGuard->ensureAvailable($lockedProduct->branch_id, $request->validated('barcode'), $lockedProduct);
             }
 
-            $internalCode = match (true) {
-                $request->validated('barcode') !== null => null,
-                $lockedProduct->internal_code !== null => $lockedProduct->internal_code,
-                default => $codeGenerator->generate(),
-            };
-
             $oldPrice = $lockedProduct->sale_price;
-            $lockedProduct->update([
-                ...$request->validated(),
-                'internal_code' => $internalCode,
-            ]);
+            $oldPurchasePrice = $lockedProduct->purchase_price;
+            if ($cashier) {
+                $lockedProduct->update($request->safe()->only(['purchase_price', 'sale_price']));
+            } else {
+                $internalCode = match (true) {
+                    $request->validated('barcode') !== null => null,
+                    $lockedProduct->internal_code !== null => $lockedProduct->internal_code,
+                    default => $codeGenerator->generate(),
+                };
+                $lockedProduct->update([...$request->validated(), 'internal_code' => $internalCode]);
+            }
 
-            if (bccomp($oldPrice, $lockedProduct->sale_price, 2) !== 0) {
+            if (bccomp($oldPurchasePrice, $lockedProduct->purchase_price, 2) !== 0 || bccomp($oldPrice, $lockedProduct->sale_price, 2) !== 0) {
                 ProductPriceHistory::query()->create([
                     'branch_id' => $lockedProduct->branch_id, 'product_id' => $lockedProduct->id,
-                    'user_id' => $request->user()->id, 'old_price' => $oldPrice, 'new_price' => $lockedProduct->sale_price,
+                    'user_id' => $request->user()->id,
+                    'old_purchase_price' => $oldPurchasePrice, 'new_purchase_price' => $lockedProduct->purchase_price,
+                    'old_price' => $oldPrice, 'new_price' => $lockedProduct->sale_price,
                 ]);
             }
         });
@@ -143,16 +155,19 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('status', 'Producto actualizado correctamente.');
     }
 
-    public function toggle(Product $product, ProductBarcodeGuard $barcodeGuard): RedirectResponse
+    public function toggle(Request $request, Product $product, ProductBarcodeGuard $barcodeGuard, AuditService $audit): RedirectResponse
     {
         Gate::authorize('update', $product);
 
-        DB::transaction(function () use ($product, $barcodeGuard): void {
+        DB::transaction(function () use ($request, $product, $barcodeGuard, $audit): void {
             Branch::query()->whereKey($product->branch_id)->lockForUpdate()->firstOrFail();
             if (! $product->is_active) {
                 $barcodeGuard->ensureAvailable($product->branch_id, $product->barcode, $product);
             }
-            $product->update(['is_active' => ! $product->is_active]);
+            $oldStatus = $product->is_active;
+            $product->update(['is_active' => ! $oldStatus]);
+            $audit->record($request->user(), $product->is_active ? 'Producto activado' : 'Producto desactivado', $product,
+                ['is_active' => $oldStatus], ['is_active' => $product->is_active]);
         });
 
         $message = $product->is_active ? 'Producto activado correctamente.' : 'Producto desactivado correctamente.';

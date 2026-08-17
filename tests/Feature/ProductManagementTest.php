@@ -140,7 +140,7 @@ class ProductManagementTest extends TestCase
         $this->assertFalse($inactive->fresh()->is_active);
     }
 
-    public function test_product_can_be_edited_but_stock_and_protected_fields_do_not_change(): void
+    public function test_cashier_can_edit_only_prices_and_malicious_structural_fields_do_not_change(): void
     {
         $product = $this->product(['stock' => 12.5]);
         $otherBranch = Branch::factory()->create();
@@ -155,36 +155,62 @@ class ProductManagementTest extends TestCase
         ])->assertRedirect(route('products.index'))->assertSessionHas('status');
 
         $product->refresh();
-        $this->assertSame('Producto actualizado', $product->name);
+        $this->assertNotSame('Producto actualizado', $product->name);
+        $this->assertSame($this->validData()['purchase_price'], $product->purchase_price);
         $this->assertSame('25.50', $product->sale_price);
         $this->assertSame('12.500', $product->stock);
         $this->assertSame($this->branch->id, $product->branch_id);
         $this->assertNotSame('CAMBIO-NO-PERMITIDO', $product->internal_code);
     }
 
-    public function test_sale_price_change_creates_immutable_history_but_equal_price_does_not(): void
+    public function test_administrator_can_edit_all_current_product_fields(): void
     {
-        $product = $this->product(['sale_price' => '5.00']);
+        $product = $this->product();
+        $this->actingAs($this->administrator())->put(route('products.update', $product), [
+            ...$this->validData(), 'name' => 'Producto administrativo', 'sale_price' => '25.50',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('Producto administrativo', $product->fresh()->name);
+        $this->assertSame('25.50', $product->fresh()->sale_price);
+    }
+
+    public function test_purchase_and_sale_price_changes_share_an_immutable_product_history(): void
+    {
+        $product = $this->product(['purchase_price' => '2.00', 'sale_price' => '12.00']);
         $user = $this->cashier();
         $time = now()->startOfSecond();
         $this->travelTo($time);
 
-        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'sale_price' => '6.00'])->assertSessionHasNoErrors();
-        $history = ProductPriceHistory::query()->sole();
-        $this->assertSame($this->branch->id, $history->branch_id);
-        $this->assertSame($product->id, $history->product_id);
-        $this->assertSame($user->id, $history->user_id);
-        $this->assertSame('5.00', $history->old_price);
-        $this->assertSame('6.00', $history->new_price);
-        $this->assertSame($time->format('Y-m-d H:i:s'), $history->created_at->format('Y-m-d H:i:s'));
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'purchase_price' => '3.00', 'sale_price' => '12.00'])->assertSessionHasNoErrors();
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'purchase_price' => '3.00', 'sale_price' => '15.00'])->assertSessionHasNoErrors();
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'purchase_price' => '4.00', 'sale_price' => '18.00'])->assertSessionHasNoErrors();
+        $history = ProductPriceHistory::query()->oldest()->get();
+        $this->assertCount(3, $history);
+        $this->assertSame(['2.00', '3.00', '12.00', '12.00'], [$history[0]->old_purchase_price, $history[0]->new_purchase_price, $history[0]->old_price, $history[0]->new_price]);
+        $this->assertSame(['3.00', '3.00', '12.00', '15.00'], [$history[1]->old_purchase_price, $history[1]->new_purchase_price, $history[1]->old_price, $history[1]->new_price]);
+        $this->assertSame(['3.00', '4.00', '15.00', '18.00'], [$history[2]->old_purchase_price, $history[2]->new_purchase_price, $history[2]->old_price, $history[2]->new_price]);
+        $this->assertTrue($history->every(fn ($change) => $change->user_id === $user->id && $change->created_at->equalTo($time)));
 
-        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'sale_price' => '6.00'])->assertSessionHasNoErrors();
-        $this->assertDatabaseCount('product_price_history', 1);
-        $this->actingAs($user)->get(route('products.edit', $product))->assertSee('Bs 5.00')->assertSee('Bs 6.00')->assertSee($user->name);
-        $this->delete('/product-price-history/'.$history->id)->assertNotFound();
-        $this->put('/product-price-history/'.$history->id)->assertNotFound();
-        $this->assertNotNull($history->fresh());
+        $this->actingAs($user)->put(route('products.update', $product), [...$this->validData(), 'purchase_price' => '4.00', 'sale_price' => '18.00'])->assertSessionHasNoErrors();
+        $this->assertDatabaseCount('product_price_history', 3);
+        $this->actingAs($user)->get(route('products.edit', $product))->assertSee('Historial de precios')->assertSee('Precio de compra')->assertSee('Precio de venta')->assertSee($user->name);
+        $this->delete('/product-price-history/'.$history[0]->id)->assertNotFound();
+        $this->put('/product-price-history/'.$history[0]->id)->assertNotFound();
+        $this->assertNotNull($history[0]->fresh());
         $this->travelBack();
+    }
+
+    public function test_minimum_stock_input_uses_integer_or_decimal_format_by_unit(): void
+    {
+        $user = $this->administrator();
+        $units = $this->product(['unit' => MeasurementUnit::Unit, 'minimum_stock' => '10.000']);
+        $kilograms = $this->product(['unit' => MeasurementUnit::Kilogram, 'minimum_stock' => '10.500']);
+
+        $this->actingAs($user)->get(route('products.edit', $units))->assertOk()
+            ->assertSee('name="minimum_stock"', false)->assertSee('step="1"', false)->assertSee('value="10"', false)->assertDontSee('value="10.000"', false);
+        $this->actingAs($user)->get(route('products.edit', $kilograms))->assertOk()
+            ->assertSee('step="0.001"', false)->assertSee('value="10.5"', false);
+        $this->actingAs($user)->get(route('products.create'))->assertOk()->assertSee("this.value === 'unit' ? '1' : '0.001'", false);
     }
 
     public function test_search_and_filters_work_with_name_codes_category_status_and_zero_stock(): void

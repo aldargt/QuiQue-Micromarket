@@ -13,6 +13,27 @@ use Illuminate\Validation\ValidationException;
 
 class InventoryService
 {
+    public function recordSaleReversal(User $user, Product $product, Sale $sale, string $quantity, string $reason, string $observation): InventoryMovement
+    {
+        return DB::transaction(function () use ($user, $product, $sale, $quantity, $reason, $observation) {
+            $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
+            if ($user->branch_id === null || $user->branch_id !== $lockedProduct->branch_id || $sale->branch_id !== $lockedProduct->branch_id) {
+                throw new AuthorizationException('No puede revertir inventario de otra sucursal.');
+            }
+
+            $stockBefore = $lockedProduct->stock;
+            $stockAfter = bcadd($stockBefore, $quantity, 3);
+            $lockedProduct->forceFill(['stock' => $stockAfter])->save();
+
+            return InventoryMovement::query()->create([
+                'branch_id' => $lockedProduct->branch_id, 'product_id' => $lockedProduct->id,
+                'user_id' => $user->id, 'sale_id' => $sale->id, 'type' => InventoryMovementType::SaleReversal,
+                'quantity' => $quantity, 'stock_before' => $stockBefore, 'stock_after' => $stockAfter,
+                'reason' => $reason, 'observation' => $observation,
+            ]);
+        });
+    }
+
     public function record(
         User $user,
         Product $product,

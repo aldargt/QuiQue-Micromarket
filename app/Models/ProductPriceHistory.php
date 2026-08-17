@@ -11,11 +11,14 @@ class ProductPriceHistory extends Model
 
     protected $table = 'product_price_history';
 
-    protected $fillable = ['branch_id', 'product_id', 'user_id', 'old_price', 'new_price'];
+    protected $fillable = ['branch_id', 'product_id', 'user_id', 'old_purchase_price', 'new_purchase_price', 'old_price', 'new_price'];
 
     protected function casts(): array
     {
-        return ['old_price' => 'decimal:2', 'new_price' => 'decimal:2'];
+        return [
+            'old_purchase_price' => 'decimal:2', 'new_purchase_price' => 'decimal:2',
+            'old_price' => 'decimal:2', 'new_price' => 'decimal:2',
+        ];
     }
 
     public function branch(): BelongsTo

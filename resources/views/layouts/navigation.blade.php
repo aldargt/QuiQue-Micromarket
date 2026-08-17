@@ -1,4 +1,8 @@
 <nav x-data="backupUi()" class="bg-white border-b border-gray-100">
+    @php
+        $profileFirstName = \Illuminate\Support\Str::before(trim(Auth::user()->name), ' ');
+        $profileRoleLabel = Auth::user()->role->slug === 'administrator' ? 'Administración' : 'Cajas';
+    @endphp
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
@@ -25,9 +29,9 @@
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         Reportes
                     </x-nav-link>
-                    <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
-                        Categorías
-                    </x-nav-link>
+                    @if (Auth::user()->hasAnyRole(['administrator']))
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">Categorías</x-nav-link>
+                    @endif
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                         Productos
                     </x-nav-link>
@@ -46,10 +50,13 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                        <button class="inline-flex items-center gap-2 px-3 py-2 border border-transparent rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            <span class="text-left leading-tight">
+                                <span class="block text-sm font-semibold text-gray-700">{{ $profileFirstName }}</span>
+                                <span class="block text-xs font-normal text-gray-500">{{ $profileRoleLabel }}</span>
+                            </span>
 
-                            <div class="ms-1">
+                            <div>
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
@@ -63,6 +70,7 @@
                         </x-dropdown-link>
 
                         @if (Auth::user()->hasAnyRole(['administrator']))
+                            <x-dropdown-link :href="route('admin.audit.index')">Auditoría</x-dropdown-link>
                             <button type="button" @click="openBackup" class="block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none">Realizar backup</button>
                         @endif
 
@@ -108,9 +116,9 @@
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                 Reportes
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
-                Categorías
-            </x-responsive-nav-link>
+            @if (Auth::user()->hasAnyRole(['administrator']))
+                <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">Categorías</x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                 Productos
             </x-responsive-nav-link>
@@ -127,7 +135,8 @@
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-base text-gray-800">{{ $profileFirstName }}</div>
+                <div class="font-medium text-sm text-gray-600">{{ $profileRoleLabel }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
 
@@ -137,6 +146,7 @@
                 </x-responsive-nav-link>
 
                 @if (Auth::user()->hasAnyRole(['administrator']))
+                    <x-responsive-nav-link :href="route('admin.audit.index')">Auditoría</x-responsive-nav-link>
                     <button type="button" @click="openBackup" class="block w-full px-4 py-2 text-start text-base font-medium text-gray-600 hover:bg-gray-50">Realizar backup</button>
                 @endif
 

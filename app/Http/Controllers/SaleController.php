@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CancelSaleRequest;
 use App\Models\Sale;
+use App\Services\SaleCancellationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -23,6 +26,13 @@ class SaleController extends Controller
     {
         Gate::authorize('view', $sale);
 
-        return view('sales.show', ['sale' => $sale->load(['user', 'items.product', 'payments', 'customer', 'raffleParticipation.tickets.period'])]);
+        return view('sales.show', ['sale' => $sale->load(['user', 'cancelledBy', 'items.product', 'payments', 'customer', 'raffleParticipation.tickets.period'])]);
+    }
+
+    public function cancel(CancelSaleRequest $request, Sale $sale, SaleCancellationService $cancellations): RedirectResponse
+    {
+        $cancellations->cancel($request->user(), $sale, $request->validated('reason'));
+
+        return redirect()->route('sales.show', $sale)->with('status', 'Venta anulada correctamente. El inventario fue restaurado.');
     }
 }

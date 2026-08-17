@@ -28,6 +28,11 @@ class SalePolicy
         return $this->hasAccess($user) && $user->branch_id === $sale->branch_id;
     }
 
+    public function cancel(User $user, Sale $sale): bool
+    {
+        return $this->hasAccess($user) && $user->branch_id === $sale->branch_id;
+    }
+
     private function hasAccess(User $user): bool
     {
         return $user->branch_id !== null && $user->hasAnyRole([RoleSlug::Administrator->value, RoleSlug::Cashier->value]);

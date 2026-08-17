@@ -25,4 +25,13 @@ enum MeasurementUnit: string
             self::Liter => number_format((float) $quantity, 3, ',', '.').' L',
         };
     }
+
+    public function formatInputQuantity(string|float|int $quantity): string
+    {
+        if ($this === self::Unit) {
+            return (string) (int) $quantity;
+        }
+
+        return rtrim(rtrim(number_format((float) $quantity, 3, '.', ''), '0'), '.');
+    }
 }

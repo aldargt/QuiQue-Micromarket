@@ -15,11 +15,11 @@ class Sale extends Model
     /** @use HasFactory<SaleFactory> */
     use HasFactory;
 
-    protected $fillable = ['branch_id', 'user_id', 'customer_id', 'sale_number', 'subtotal', 'total', 'status', 'confirmed_at'];
+    protected $fillable = ['branch_id', 'user_id', 'customer_id', 'sale_number', 'subtotal', 'total', 'status', 'confirmed_at', 'cancelled_by', 'cancelled_at', 'cancellation_reason'];
 
     protected function casts(): array
     {
-        return ['subtotal' => 'decimal:2', 'total' => 'decimal:2', 'status' => SaleStatus::class, 'confirmed_at' => 'datetime'];
+        return ['subtotal' => 'decimal:2', 'total' => 'decimal:2', 'status' => SaleStatus::class, 'confirmed_at' => 'datetime', 'cancelled_at' => 'datetime'];
     }
 
     public function branch(): BelongsTo
@@ -30,6 +30,11 @@ class Sale extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function cancelledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
     }
 
     public function customer(): BelongsTo

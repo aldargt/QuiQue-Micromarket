@@ -13,8 +13,11 @@
         .meta { color: #4b5563; }
         .summary { border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px; width: calc(100% + 12px); }
         .summary td { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 9px; vertical-align: top; width: 25%; }
+        .summary-cancellations { table-layout: fixed; }
+        .summary-cancellations td { width: 50%; }
         .summary .label { color: #6b7280; font-size: 8px; text-transform: uppercase; }
         .summary .value { color: #111827; font-size: 15px; font-weight: bold; margin-top: 3px; }
+        .commercial-criteria { color: #4b5563; margin: 7px 0 0; }
         table.data { border-collapse: collapse; width: 100%; }
         table.data th { background: #e5e7eb; color: #374151; font-size: 8px; padding: 6px; text-align: left; text-transform: uppercase; }
         table.data td { border-bottom: 1px solid #e5e7eb; padding: 6px; vertical-align: top; }
@@ -40,6 +43,11 @@
         <td><div class="label">QR</div><div class="value">Bs {{ number_format((float) $qrTotal, 2, ',', '.') }}</div><p>{{ $qrCount }} {{ $qrCount === 1 ? 'operación' : 'operaciones' }}</p></td>
         <td><div class="label">Operaciones mixtas</div><div class="value">{{ $mixedCount }}</div><p>Bs {{ number_format((float) $mixedTotal, 2, ',', '.') }}</p></td>
     </tr></table>
+    <table class="summary summary-cancellations" style="margin-top: 6px;"><tr>
+        <td colspan="2"><div class="label">Ventas anuladas</div><div class="value">{{ $cancelledSalesCount }}</div><p>Solo informativo</p></td>
+        <td colspan="2"><div class="label">Monto anulado</div><div class="value">Bs {{ number_format((float) $cancelledSalesTotal, 2, ',', '.') }}</div><p>No incluido en ingresos</p></td>
+    </tr></table>
+    <p class="commercial-criteria"><strong>Criterio comercial:</strong> Los totales, productos y gráficas consideran únicamente las ventas confirmadas.</p>
 
     <h2>{{ $chartData['title'] }}</h2>
     @php

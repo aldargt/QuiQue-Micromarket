@@ -26,6 +26,7 @@
                 <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Pagos QR</p><p class="mt-2 text-3xl font-bold text-cyan-700">Bs {{ number_format((float) $qrTotal, 2, ',', '.') }}</p><p class="mt-1 text-sm text-gray-600">{{ $qrCount }} {{ $qrCount === 1 ? 'operación' : 'operaciones' }} con QR</p></div>
                 <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-200"><p class="text-sm font-medium text-gray-500">Pagos mixtos</p><p class="mt-2 text-3xl font-bold text-violet-700">{{ $mixedCount }}</p><p class="mt-1 text-sm text-gray-600">Bs {{ number_format((float) $mixedTotal, 2, ',', '.') }} en ventas mixtas</p></div>
             </div>
+            <div class="mt-4 flex flex-col justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-900 sm:flex-row sm:items-center"><div><p class="font-semibold">Ventas anuladas: {{ $cancelledSalesCount }}</p><p class="text-sm text-red-700">Se muestran solo como referencia y no forman parte de los ingresos.</p></div><p class="font-semibold">Monto anulado: Bs {{ number_format((float) $cancelledSalesTotal, 2, ',', '.') }}</p></div>
         </section>
 
         <section class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200" aria-labelledby="chart-title">

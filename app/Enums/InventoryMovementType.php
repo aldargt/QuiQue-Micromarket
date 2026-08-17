@@ -8,6 +8,7 @@ enum InventoryMovementType: string
     case Exit = 'exit';
     case PositiveAdjustment = 'positive_adjustment';
     case NegativeAdjustment = 'negative_adjustment';
+    case SaleReversal = 'sale_reversal';
 
     public function label(): string
     {
@@ -16,11 +17,12 @@ enum InventoryMovementType: string
             self::Exit => 'Salida',
             self::PositiveAdjustment => 'Ajuste positivo',
             self::NegativeAdjustment => 'Ajuste negativo',
+            self::SaleReversal => 'Reversión de venta',
         };
     }
 
     public function increasesStock(): bool
     {
-        return in_array($this, [self::Entry, self::PositiveAdjustment], true);
+        return in_array($this, [self::Entry, self::PositiveAdjustment, self::SaleReversal], true);
     }
 }

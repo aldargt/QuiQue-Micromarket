@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RoleSlug;
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\RaffleSettingController;
 use App\Http\Controllers\Admin\UserController;
@@ -62,6 +63,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/pos/sales', [PosController::class, 'store'])->name('pos.sales.store');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
     Route::post('/sales/{sale}/raffle/accept', [RaffleParticipationController::class, 'accept'])->name('sales.raffle.accept');
     Route::post('/sales/{sale}/raffle/decline', [RaffleParticipationController::class, 'decline'])->name('sales.raffle.decline');
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
@@ -84,6 +86,7 @@ Route::prefix('admin')->name('admin.')->middleware([
     Route::put('users/{user}/password', [UserController::class, 'resetPassword'])->name('users.password.update');
     Route::patch('raffle-settings', [RaffleSettingController::class, 'update'])->name('raffle-settings.update');
     Route::post('backup', [BackupController::class, 'store'])->name('backup.store');
+    Route::get('audit', [AuditLogController::class, 'index'])->name('audit.index');
 });
 
 require __DIR__.'/auth.php';
