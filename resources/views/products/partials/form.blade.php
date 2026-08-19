@@ -45,7 +45,7 @@
         <x-input-error :messages="$errors->get('purchase_price')" class="mt-2" />
     </div>
     <div>
-        <x-input-label for="sale_price" value="Precio de venta (Bs)" />
+        <x-input-label for="sale_price" value="Precio de venta (Bs)" :required="! isset($product)" />
         <x-text-input id="sale_price" name="sale_price" type="number" min="0" step="any" class="mt-1 block w-full" :value="old('sale_price', isset($product) ? $product->sale_price : '')" required />
         <x-input-error :messages="$errors->get('sale_price')" class="mt-2" />
     </div>
