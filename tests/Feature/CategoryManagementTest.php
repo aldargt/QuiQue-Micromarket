@@ -48,6 +48,8 @@ class CategoryManagementTest extends TestCase
     public function test_administrator_can_create_category_and_cashier_cannot(): void
     {
         $administrator = $this->administrator();
+        $create = $this->actingAs($administrator)->get(route('categories.create'))->assertOk();
+        $this->assertSame(1, substr_count($create->getContent(), '(obligatorio)'));
         $this->actingAs($administrator)->post(route('categories.store'), ['name' => '  Leches  '])
             ->assertRedirect(route('categories.index'));
         $this->assertDatabaseHas('categories', ['name' => 'Leches', 'created_by' => $administrator->id]);

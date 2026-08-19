@@ -62,6 +62,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::delete('/pos/cart', [PosController::class, 'clearCart'])->name('pos.cart.clear');
     Route::post('/pos/sales', [PosController::class, 'store'])->name('pos.sales.store');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/sales/{sale}/receipt', [SaleController::class, 'receipt'])->name('sales.receipt');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
     Route::post('/sales/{sale}/raffle/accept', [RaffleParticipationController::class, 'accept'])->name('sales.raffle.accept');

@@ -50,13 +50,41 @@ class PointOfSaleTest extends TestCase
 
     public function test_pos_exposes_add_modify_and_remove_cart_controls(): void
     {
-        $this->actingAs($this->cashier())->get(route('pos.index'))
+        $response = $this->actingAs($this->cashier())->get(route('pos.index'))
             ->assertOk()
             ->assertSee('add(product)', false)
             ->assertSee('x-model="item.quantity"', false)
             ->assertSee('remove(index)', false)
             ->assertSee('aria-label="Editar producto"', false)
             ->assertSee('aria-label="Eliminar producto del carrito"', false);
+        $this->assertSame(2, substr_count($response->getContent(), '(obligatorio)'));
+    }
+
+    public function test_confirmed_sale_has_authorized_thermal_receipt_with_historical_content(): void
+    {
+        $product = $this->product(['name' => 'Leche histórica', 'sale_price' => '12.50']);
+        $user = $this->cashier(['name' => 'Caja Principal']);
+        $this->actingAs($user)->post(route('pos.sales.store'), $this->saleData($product, ['cash_received' => '30.00']));
+        $sale = Sale::query()->firstOrFail();
+        $product->update(['name' => 'Nombre nuevo', 'sale_price' => '99.00']);
+
+        $detail = $this->get(route('sales.show', $sale))->assertOk()
+            ->assertSee('Imprimir recibo')
+            ->assertSee(route('sales.receipt', $sale), false);
+        $this->assertSame(1, substr_count($detail->getContent(), '(obligatorio)'));
+        $receipt = $this->get(route('sales.receipt', $sale))->assertOk();
+        $receipt->assertSeeInOrder([$sale->sale_number, 'Caja Principal', 'Leche histórica', '2 unidades', '12,50', '25,00'])
+            ->assertSee('Efectivo')
+            ->assertSee('Recibido: Bs 30,00')
+            ->assertSee('Cambio: Bs 5,00')
+            ->assertSee('window.print()', false)
+            ->assertDontSee('Nombre nuevo');
+
+        $foreignBranch = Branch::factory()->create(['code' => 'RECIBO-AJENO']);
+        $foreign = $this->cashier(['branch_id' => $foreignBranch->id]);
+        $this->actingAs($foreign)->get(route('sales.receipt', $sale))->assertForbidden();
+        $this->post('/logout');
+        $this->get(route('sales.receipt', $sale))->assertRedirect(route('login'));
     }
 
     public function test_clear_cart_uses_integrated_modal_instead_of_native_confirmation(): void
@@ -285,6 +313,8 @@ class PointOfSaleTest extends TestCase
         $this->actingAs($user)->get(route('sales.index'))->assertSee($own->sale_number)->assertDontSee($foreign->sale_number);
         $this->actingAs($user)->get(route('sales.show', $own))->assertOk();
         $this->actingAs($user)->get(route('sales.show', $foreign))->assertForbidden();
+        $this->actingAs($user)->get(route('sales.receipt', $own))->assertOk();
+        $this->actingAs($user)->get(route('sales.receipt', $foreign))->assertForbidden();
     }
 
     private function saleData(Product $product, array $overrides = []): array

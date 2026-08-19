@@ -91,7 +91,7 @@
                     <div x-show="selectedCustomer" class="rounded-md border border-green-200 bg-green-50 p-4"><p class="font-semibold" x-text="selectedCustomer?.full_name"></p><p class="text-sm" x-text="`Teléfono: ${selectedCustomer?.phone || ''}`"></p><p x-show="selectedCustomer?.ci" class="text-sm" x-text="`CI: ${selectedCustomer?.ci}`"></p><button type="button" @click="confirmExistingCustomer" class="mt-4 rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white">Asignar tickets</button></div>
                 </div>
                 <div x-show="customerMode === 'new'" class="mt-5 space-y-4">
-                    <div><x-input-label value="Nombre completo *"/><x-text-input x-model="customerFullName" class="mt-1 w-full"/></div><div><x-input-label value="Teléfono/celular *"/><x-text-input x-model="customerPhone" class="mt-1 w-full"/></div><div><x-input-label value="CI (opcional)"/><x-text-input x-model="customerCi" class="mt-1 w-full"/></div>
+                    <div><x-input-label value="Nombre completo" required/><x-text-input x-model="customerFullName" class="mt-1 w-full"/></div><div><x-input-label value="Teléfono/celular" required/><x-text-input x-model="customerPhone" class="mt-1 w-full"/></div><div><x-input-label value="CI (opcional)"/><x-text-input x-model="customerCi" class="mt-1 w-full"/></div>
                     <p x-show="customerFormError" class="text-sm text-red-600" x-text="customerFormError"></p><button type="button" @click="confirmNewCustomer" class="rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white">Registrar y asignar tickets</button>
                 </div>
             </div>

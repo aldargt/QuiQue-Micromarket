@@ -4,7 +4,7 @@
 @endif
 <div class="grid gap-6 sm:grid-cols-2">
     <div class="sm:col-span-2">
-        <x-input-label for="name" value="Nombre del producto" />
+        <x-input-label for="name" value="Nombre del producto" :required="! isset($product)" />
         <x-text-input id="name" name="name" type="text" class="mt-1 block w-full disabled:bg-gray-100" :value="old('name', isset($product) ? $product->name : '')" :disabled="$limitedEdit" required autofocus maxlength="150" placeholder="Ej.: Leche Pil 1L" />
         <x-input-error :messages="$errors->get('name')" class="mt-2" />
     </div>
@@ -15,7 +15,7 @@
         <p class="mt-2 text-xs text-gray-500">Debe contener entre 8 y 14 dígitos. El código interno se genera automáticamente.</p>
     </div>
     <div>
-        <x-input-label for="category_id" value="Categoría" />
+        <x-input-label for="category_id" value="Categoría" :required="! isset($product)" />
         <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" @disabled($limitedEdit) required>
             <option value="">Seleccione una categoría</option>
             @foreach ($categories as $category)
@@ -25,7 +25,7 @@
         <x-input-error :messages="$errors->get('category_id')" class="mt-2" />
     </div>
     <div>
-        <x-input-label for="unit" value="Unidad de medida" />
+        <x-input-label for="unit" value="Unidad de medida" :required="! isset($product)" />
         <select id="unit" name="unit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" onchange="document.getElementById('minimum_stock').step = this.value === 'unit' ? '1' : '0.001'" @disabled($limitedEdit) required>
             <option value="">Seleccione una unidad</option>
             @foreach ($units as $unit)

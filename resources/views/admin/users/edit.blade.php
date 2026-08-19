@@ -51,12 +51,12 @@
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2">
                     <div>
-                        <x-input-label for="password" value="Nueva contraseña" />
+                        <x-input-label for="password" value="Nueva contraseña" required />
                         <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required autocomplete="new-password" />
                         <x-input-error :messages="$errors->get('password')" class="mt-2" />
                     </div>
                     <div>
-                        <x-input-label for="password_confirmation" value="Confirmar contraseña" />
+                        <x-input-label for="password_confirmation" value="Confirmar contraseña" required />
                         <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" required autocomplete="new-password" />
                     </div>
                 </div>

@@ -39,11 +39,12 @@ class ProductManagementTest extends TestCase
     {
         foreach ([$this->administrator(), $this->cashier()] as $user) {
             $this->actingAs($user)->get(route('products.index'))->assertOk();
-            $this->actingAs($user)->get(route('products.create'))
+            $response = $this->actingAs($user)->get(route('products.create'))
                 ->assertOk()
                 ->assertSee('step="any"', false)
                 ->assertSee('Unidad')->assertSee('Kilogramo')->assertSee('Litro')
                 ->assertDontSee('Gramo')->assertDontSee('Mililitro');
+            $this->assertSame(3, substr_count($response->getContent(), '(obligatorio)'));
         }
     }
 

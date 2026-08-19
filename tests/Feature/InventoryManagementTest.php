@@ -51,7 +51,8 @@ class InventoryManagementTest extends TestCase
     public function test_administrator_and_cashier_can_register_all_manual_movement_types(): void
     {
         $administratorProduct = $this->product();
-        $this->actingAs($this->administrator())->get(route('inventory.movements.create', $administratorProduct))->assertOk();
+        $create = $this->actingAs($this->administrator())->get(route('inventory.movements.create', $administratorProduct))->assertOk();
+        $this->assertSame(3, substr_count($create->getContent(), '(obligatorio)'));
 
         $cashier = $this->cashier();
         foreach ([

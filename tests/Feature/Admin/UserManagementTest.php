@@ -38,6 +38,10 @@ class UserManagementTest extends TestCase
     public function test_administrator_can_access_user_management(): void
     {
         $this->actingAs($this->administrator())->get(route('admin.users.index'))->assertOk();
+        $create = $this->get(route('admin.users.create'))->assertOk();
+        $this->assertSame(5, substr_count($create->getContent(), '(obligatorio)'));
+        $edit = $this->get(route('admin.users.edit', $this->cashier()))->assertOk();
+        $this->assertSame(2, substr_count($edit->getContent(), '(obligatorio)'));
     }
 
     public function test_administrator_and_cashier_can_log_in(): void

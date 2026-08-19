@@ -29,6 +29,15 @@ class SaleController extends Controller
         return view('sales.show', ['sale' => $sale->load(['user', 'cancelledBy', 'items.product', 'payments', 'customer', 'raffleParticipation.tickets.period'])]);
     }
 
+    public function receipt(Sale $sale): View
+    {
+        Gate::authorize('view', $sale);
+
+        return view('sales.receipt', [
+            'sale' => $sale->load(['branch', 'user', 'items', 'payments', 'customer', 'raffleParticipation.tickets']),
+        ]);
+    }
+
     public function cancel(CancelSaleRequest $request, Sale $sale, SaleCancellationService $cancellations): RedirectResponse
     {
         $cancellations->cancel($request->user(), $sale, $request->validated('reason'));
