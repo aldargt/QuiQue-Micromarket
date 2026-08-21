@@ -9,7 +9,8 @@
         h1 { color: #111827; font-size: 19px; margin: 0 0 4px; }
         h2 { border-bottom: 1px solid #d1d5db; color: #111827; font-size: 12px; margin: 18px 0 8px; padding-bottom: 4px; }
         p { margin: 2px 0; }
-        .header { border-bottom: 2px solid #4338ca; margin-bottom: 14px; padding-bottom: 10px; }
+        .header { border-bottom: 2px solid #4338ca; margin-bottom: 14px; min-height: 52px; padding: 0 64px 4px 0; position: relative; }
+        .pdf-logo { height: 52px; object-fit: contain; position: absolute; right: 0; top: 0; width: 52px; }
         .meta { color: #4b5563; }
         .summary { border-collapse: separate; border-spacing: 6px 0; margin: 0 -6px; width: calc(100% + 12px); }
         .summary td { background: #f3f4f6; border: 1px solid #e5e7eb; padding: 9px; vertical-align: top; width: 25%; }
@@ -31,7 +32,11 @@
     </style>
 </head>
 <body>
+    @php
+        $pdfLogo = 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('images/quique-logo.png')));
+    @endphp
     <header class="header">
+        <img class="pdf-logo" src="{{ $pdfLogo }}" alt="QuiQue Micromarket">
         <h1>QuiQue Micromarket — Reporte de ventas</h1>
         <p><strong>Período:</strong> {{ $periodLabel }}</p>
         <p class="meta">Sucursal: {{ $branchName }} · Generado: {{ $generatedAt->format('d/m/Y H:i') }} · Zona horaria: UTC{{ $generatedAt->format('P') }}</p>

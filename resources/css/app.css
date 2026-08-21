@@ -23,6 +23,11 @@
     .dark .ui-link { @apply text-[#72d4e2] hover:text-[#9be5ee]; }
     .dark .ui-button-secondary { @apply border-slate-600 bg-[#2b323c] text-slate-100 hover:border-[#2EB8CE] hover:bg-[#313b46]; }
 
+    select.select-placeholder:required:invalid { @apply text-gray-500; }
+    select.select-placeholder option { @apply text-gray-800; }
+    .dark select.select-placeholder:required:invalid { @apply text-slate-400; }
+    .dark select.select-placeholder option { @apply bg-[#1d232b] text-slate-100; }
+
     .report-period-controls form button,
     .report-period-controls a[href*='period=yesterday'] {
         @apply cursor-pointer shadow-sm transition duration-150 ease-in-out focus-visible:ring-[#2EB8CE] active:translate-y-px;

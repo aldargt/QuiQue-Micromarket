@@ -132,6 +132,41 @@ class RaffleLoyaltyTest extends TestCase
         $this->assertSame(RaffleTicketStatus::Active, $customer->tickets()->orderByDesc('id')->first()->status);
     }
 
+    public function test_annual_ticket_totals_are_separated_by_calendar_year(): void
+    {
+        $cashier = $this->cashier();
+        $customer = Customer::create([
+            'branch_id' => $this->branch->id,
+            'full_name' => 'Cliente anual',
+            'phone' => '70000999',
+        ]);
+        $service = app(RaffleParticipationService::class);
+
+        foreach ([
+            ['2026-01-15 10:00:00', '100.00'],
+            ['2026-03-15 10:00:00', '150.00'],
+            ['2027-01-15 10:00:00', '200.00'],
+        ] as [$date, $total]) {
+            $this->travelTo(Carbon::parse($date));
+            $sale = $this->offeredSale($total, $cashier, $date);
+            $service->accept($cashier, $sale, ['customer_id' => $customer->id]);
+        }
+
+        $annualTotal = fn (int $year): int => $customer->tickets()
+            ->whereHas('period', fn ($query) => $query
+                ->whereDate('starts_on', '>=', "{$year}-01-01")
+                ->whereDate('starts_on', '<=', "{$year}-12-31"))
+            ->count();
+
+        $this->assertSame(5, $annualTotal(2026));
+        $this->assertSame(4, $annualTotal(2027));
+        $this->assertCount(9, $customer->tickets()->get());
+        $this->assertSame(5, $customer->tickets()->where('status', RaffleTicketStatus::Expired)->count());
+        $this->assertSame(4, $customer->tickets()->where('status', RaffleTicketStatus::Active)->count());
+
+        $this->travelBack();
+    }
+
     public function test_only_administrator_can_change_threshold_and_change_does_not_rewrite_existing_offer(): void
     {
         $cashier = $this->cashier();

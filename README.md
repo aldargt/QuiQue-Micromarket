@@ -17,6 +17,19 @@ MySQL/MariaDB, Blade, Tailwind CSS y JavaScript.
 
 La aplicación no permite registro público y no contiene credenciales predeterminadas.
 
+## Recuperación de contraseña
+
+El flujo utiliza el Password Broker oficial de Laravel. Los enlaces expiran a los
+60 minutos y su solicitud está limitada a una por minuto. En desarrollo,
+`MAIL_MAILER=log` escribe el mensaje en `storage/logs/laravel.log`, por lo que no
+entrega correos reales.
+
+Para habilitar la entrega real, configure en el `.env` local un proveedor SMTP con
+`MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
+`MAIL_ENCRYPTION`, `MAIL_FROM_ADDRESS` y `MAIL_FROM_NAME`, y ejecute
+`php artisan config:clear`. Las credenciales pertenecen al entorno y nunca deben
+guardarse en el repositorio.
+
 ## Administrador inicial
 
 Después de migrar y ejecutar las semillas, crear el único administrador inicial con:

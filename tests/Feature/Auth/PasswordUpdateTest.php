@@ -26,9 +26,15 @@ class PasswordUpdateTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', 'password-updated')
             ->assertRedirect('/profile');
 
         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $this->actingAs($user)->get('/profile')
+            ->assertOk()
+            ->assertSee('Contraseña actualizada correctamente.')
+            ->assertSee('border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800', false)
+            ->assertSee('role="status"', false);
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void

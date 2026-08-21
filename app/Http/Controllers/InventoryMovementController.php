@@ -49,7 +49,7 @@ class InventoryMovementController extends Controller
 
         return view('inventory.movements.create', [
             'product' => $product->load('category'),
-            'types' => InventoryMovementType::cases(),
+            'types' => InventoryMovementType::manualCases(),
         ]);
     }
 

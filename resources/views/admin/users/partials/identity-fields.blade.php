@@ -6,12 +6,12 @@
     </div>
     <div>
         <x-input-label for="email" value="Correo electrónico" :required="$showRequired ?? false" />
-        <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', isset($cashier) ? $cashier->email : '')" required autocomplete="username" />
+        <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', isset($cashier) ? $cashier->email : '')" required autocomplete="email" />
         <x-input-error :messages="$errors->get('email')" class="mt-2" />
     </div>
     <div>
         <x-input-label for="branch_id" value="Sucursal" :required="$showRequired ?? false" />
-        <select id="branch_id" name="branch_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500" required>
+        <select id="branch_id" name="branch_id" class="select-placeholder mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500" required>
             <option value="">Seleccione una sucursal</option>
             @foreach ($branches as $branch)
                 <option value="{{ $branch->id }}" @selected((string) old('branch_id', isset($cashier) ? $cashier->branch_id : '') === (string) $branch->id)>{{ $branch->name }}</option>

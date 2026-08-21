@@ -42,9 +42,11 @@ class ProductManagementTest extends TestCase
             $response = $this->actingAs($user)->get(route('products.create'))
                 ->assertOk()
                 ->assertSee('step="any"', false)
+                ->assertSee('autocomplete="off"', false)
+                ->assertSee('select-placeholder', false)
                 ->assertSee('Unidad')->assertSee('Kilogramo')->assertSee('Litro')
                 ->assertDontSee('Gramo')->assertDontSee('Mililitro');
-            $this->assertSame(3, substr_count($response->getContent(), '(obligatorio)'));
+            $this->assertSame(4, substr_count($response->getContent(), '(obligatorio)'));
         }
     }
 

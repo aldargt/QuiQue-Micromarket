@@ -271,6 +271,7 @@ class ReportTest extends TestCase
             ->assertHeader('content-type', 'application/pdf')
             ->assertDownload();
         $this->assertStringStartsWith('%PDF-', $response->getContent());
+        $this->assertStringContainsString('/Subtype /Image', $response->getContent());
         $this->assertMatchesRegularExpression('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+792(?:\.0+)?\s+612(?:\.0+)?\s*\]/', $response->getContent());
         $this->assertGreaterThan(40, substr_count($this->decodedPdfStreams($response->getContent()), ' l'));
 
@@ -278,6 +279,12 @@ class ReportTest extends TestCase
         $data['branchName'] = $this->branch->name;
         $data['generatedAt'] = now();
         $html = view('reports.pdf', $data)->render();
+        $this->assertStringContainsString('class="pdf-logo"', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString('right: 0', $html);
+        $this->assertStringContainsString('height: 52px', $html);
+        $this->assertStringContainsString('width: 52px', $html);
+        $this->assertStringNotContainsString('left: 0', $html);
         $this->assertStringContainsString('10 de agosto de 2026', $html);
         $this->assertStringContainsString('Pollo histórico PDF', $html);
         $this->assertStringContainsString('12,500 kg', $html);

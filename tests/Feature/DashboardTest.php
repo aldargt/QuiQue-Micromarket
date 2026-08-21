@@ -231,12 +231,19 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($administrator)->get(route('dashboard.inventory-pdf', ['branch_id' => $this->otherBranch->id]))
             ->assertOk()->assertHeader('content-type', 'application/pdf')->assertDownload();
         $this->assertStringStartsWith('%PDF-', $response->getContent());
+        $this->assertStringContainsString('/Subtype /Image', $response->getContent());
         $this->assertMatchesRegularExpression('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+792(?:\.0+)?\s+612(?:\.0+)?\s*\]/', $response->getContent());
 
         $data = app(DashboardService::class)->forBranch($this->branch->id, today());
         $data['branchName'] = $this->branch->name;
         $data['generatedAt'] = now();
         $html = view('dashboard-inventory-pdf', $data)->render();
+        $this->assertStringContainsString('class="pdf-logo"', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+        $this->assertStringContainsString('right: 0', $html);
+        $this->assertStringContainsString('height: 52px', $html);
+        $this->assertStringContainsString('width: 52px', $html);
+        $this->assertStringNotContainsString('left: 0', $html);
         $this->assertStringContainsString('Reporte de Inventario y Abastecimiento', $html);
         $this->assertStringNotContainsString('Productos más vendidos de hoy', $html);
         $this->assertStringNotContainsString('Producto histórico vendido', $html);

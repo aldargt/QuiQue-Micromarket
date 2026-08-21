@@ -25,7 +25,10 @@ class StoreInventoryMovementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', Rule::enum(InventoryMovementType::class)],
+            'type' => ['required', Rule::in(array_map(
+                fn (InventoryMovementType $type) => $type->value,
+                InventoryMovementType::manualCases(),
+            ))],
             'quantity' => ['required', 'numeric', 'gt:0', 'decimal:0,3', 'max:999999999.999'],
             'reason' => ['required', 'string', 'max:150'],
             'observation' => ['nullable', 'string', 'max:1000'],

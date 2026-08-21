@@ -52,6 +52,7 @@ class InventoryManagementTest extends TestCase
     {
         $administratorProduct = $this->product();
         $create = $this->actingAs($this->administrator())->get(route('inventory.movements.create', $administratorProduct))->assertOk();
+        $create->assertSee('select-placeholder', false)->assertSee('autocomplete="off"', false);
         $this->assertSame(3, substr_count($create->getContent(), '(obligatorio)'));
 
         $cashier = $this->cashier();
@@ -73,6 +74,24 @@ class InventoryManagementTest extends TestCase
                 'type' => $type->value,
             ]);
         }
+    }
+
+    public function test_sale_reversal_is_not_available_or_accepted_as_a_manual_movement(): void
+    {
+        $product = $this->product(['stock' => '5.000']);
+        $user = $this->administrator();
+
+        $this->actingAs($user)->get(route('inventory.movements.create', $product))
+            ->assertOk()
+            ->assertDontSee('Reversión de venta')
+            ->assertDontSee('value="'.InventoryMovementType::SaleReversal->value.'"', false);
+
+        $this->actingAs($user)->post(route('inventory.movements.store', $product), $this->movementData([
+            'type' => InventoryMovementType::SaleReversal->value,
+        ]))->assertSessionHasErrors('type');
+
+        $this->assertSame('5.000', $product->fresh()->stock);
+        $this->assertDatabaseCount('inventory_movements', 0);
     }
 
     public function test_entry_increases_stock_and_records_complete_movement(): void

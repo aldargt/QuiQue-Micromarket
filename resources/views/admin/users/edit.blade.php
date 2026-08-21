@@ -47,7 +47,7 @@
                 @method('PUT')
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Restablecer contraseña</h2>
-                    <p class="mt-1 text-sm text-gray-500">Introduce una contraseña temporal segura y comunícala directamente al cajero.</p>
+                    <p class="mt-1 text-sm text-gray-500"></p>
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2">
                     <div>

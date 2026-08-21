@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -33,6 +34,33 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_remember_me_creates_the_standard_laravel_recaller_cookie(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => 'on',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertCookie(Auth::guard()->getRecallerName());
+    }
+
+    public function test_login_without_remember_me_uses_only_the_normal_session(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertCookieMissing(Auth::guard()->getRecallerName());
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

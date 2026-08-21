@@ -5,18 +5,18 @@
 <div class="grid gap-6 sm:grid-cols-2">
     <div class="sm:col-span-2">
         <x-input-label for="name" value="Nombre del producto" :required="! isset($product)" />
-        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full disabled:bg-gray-100" :value="old('name', isset($product) ? $product->name : '')" :disabled="$limitedEdit" required autofocus maxlength="150" placeholder="Ej.: Leche Pil 1L" />
+        <x-text-input id="name" name="name" type="text" class="mt-1 block w-full disabled:bg-gray-100" :value="old('name', isset($product) ? $product->name : '')" :disabled="$limitedEdit" required autofocus maxlength="150" autocomplete="off" placeholder="Ej.: Leche Pil 1L" />
         <x-input-error :messages="$errors->get('name')" class="mt-2" />
     </div>
     <div>
         <x-input-label for="barcode" value="Código de barras (opcional)" />
-        <x-text-input id="barcode" name="barcode" type="text" inputmode="numeric" class="mt-1 block w-full disabled:bg-gray-100" :value="old('barcode', isset($product) ? $product->barcode : '')" :disabled="$limitedEdit" maxlength="14" placeholder="Ej.: 7771234567890" />
+        <x-text-input id="barcode" name="barcode" type="text" inputmode="numeric" class="mt-1 block w-full disabled:bg-gray-100" :value="old('barcode', isset($product) ? $product->barcode : '')" :disabled="$limitedEdit" maxlength="14" autocomplete="off" placeholder="Ej.: 7771234567890" />
         <x-input-error :messages="$errors->get('barcode')" class="mt-2" />
         <p class="mt-2 text-xs text-gray-500">Debe contener entre 8 y 14 dígitos. El código interno se genera automáticamente.</p>
     </div>
     <div>
         <x-input-label for="category_id" value="Categoría" :required="! isset($product)" />
-        <select id="category_id" name="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" @disabled($limitedEdit) required>
+        <select id="category_id" name="category_id" class="select-placeholder mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" @disabled($limitedEdit) required>
             <option value="">Seleccione una categoría</option>
             @foreach ($categories as $category)
                 <option value="{{ $category->id }}" @selected((string) old('category_id', isset($product) ? $product->category_id : '') === (string) $category->id)>{{ $category->name }}{{ $category->is_active ? '' : ' (inactiva, relación actual)' }}</option>
@@ -26,7 +26,7 @@
     </div>
     <div>
         <x-input-label for="unit" value="Unidad de medida" :required="! isset($product)" />
-        <select id="unit" name="unit" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" onchange="document.getElementById('minimum_stock').step = this.value === 'unit' ? '1' : '0.001'" @disabled($limitedEdit) required>
+        <select id="unit" name="unit" class="select-placeholder mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 disabled:bg-gray-100" onchange="document.getElementById('minimum_stock').step = this.value === 'unit' ? '1' : '0.001'" @disabled($limitedEdit) required>
             <option value="">Seleccione una unidad</option>
             @foreach ($units as $unit)
                 <option value="{{ $unit->value }}" @selected(old('unit', isset($product) ? $product->unit->value : '') === $unit->value)>{{ $unit->label() }}</option>

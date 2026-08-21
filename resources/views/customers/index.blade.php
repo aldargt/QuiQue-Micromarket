@@ -18,7 +18,7 @@
                 <form method="POST" action="{{ route('admin.raffle-settings.update') }}" @click.outside="settingsOpen=false" class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
                     @csrf @method('PATCH')
                     <h3 id="raffle-settings-title" class="text-lg font-semibold">Configurar umbral de tickets</h3>
-                    <div class="mt-5"><x-input-label for="raffle-threshold" value="Monto requerido por ticket"/><div class="mt-1 flex items-center gap-2"><span class="font-semibold">Bs</span><x-text-input id="raffle-threshold" name="raffle_ticket_threshold" type="number" min="1" step="1" value="{{ old('raffle_ticket_threshold', (int) $branch->raffle_ticket_threshold) }}" class="w-full" required/></div><x-input-error :messages="$errors->get('raffle_ticket_threshold')" class="mt-2"/></div>
+                    <div class="mt-5"><x-input-label for="raffle-threshold" value="Monto requerido por ticket" required/><div class="mt-1 flex items-center gap-2"><span class="font-semibold">Bs</span><x-text-input id="raffle-threshold" name="raffle_ticket_threshold" type="number" min="1" step="1" value="{{ old('raffle_ticket_threshold', (int) $branch->raffle_ticket_threshold) }}" class="w-full" required/></div><x-input-error :messages="$errors->get('raffle_ticket_threshold')" class="mt-2"/></div>
                     <p class="mt-3 text-sm text-gray-600">Se aplicará sólo a ventas nuevas; el historial conservará sus valores.</p>
                     <div class="mt-6 flex justify-end gap-3"><button type="button" @click="settingsOpen=false" class="rounded-md border px-4 py-2 font-semibold text-gray-700">Cancelar</button><x-primary-button>Guardar configuración</x-primary-button></div>
                 </form>

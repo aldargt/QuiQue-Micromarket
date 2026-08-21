@@ -39,6 +39,7 @@ class UserManagementTest extends TestCase
     {
         $this->actingAs($this->administrator())->get(route('admin.users.index'))->assertOk();
         $create = $this->get(route('admin.users.create'))->assertOk();
+        $create->assertSee('autocomplete="email"', false)->assertSee('select-placeholder', false);
         $this->assertSame(5, substr_count($create->getContent(), '(obligatorio)'));
         $edit = $this->get(route('admin.users.edit', $this->cashier()))->assertOk();
         $this->assertSame(2, substr_count($edit->getContent(), '(obligatorio)'));
