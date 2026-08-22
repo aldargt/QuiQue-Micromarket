@@ -128,7 +128,12 @@ class ProductController extends Controller
             $oldPrice = $lockedProduct->sale_price;
             $oldPurchasePrice = $lockedProduct->purchase_price;
             if ($cashier) {
-                $lockedProduct->update($request->safe()->only(['purchase_price', 'sale_price']));
+                $lockedProduct->update($request->safe()->only([
+                    'purchase_price',
+                    'sale_price',
+                    'minimum_stock',
+                    'expires_at',
+                ]));
             } else {
                 $internalCode = match (true) {
                     $request->validated('barcode') !== null => null,

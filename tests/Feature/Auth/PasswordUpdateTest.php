@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Enums\RoleSlug;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +15,12 @@ class PasswordUpdateTest extends TestCase
 
     public function test_password_can_be_updated(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'role_id' => Role::factory()->create([
+                'name' => 'Cajero',
+                'slug' => RoleSlug::Cashier->value,
+            ]),
+        ]);
 
         $response = $this
             ->actingAs($user)

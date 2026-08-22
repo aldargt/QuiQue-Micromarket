@@ -8,20 +8,21 @@
         <!-- Email Address -->
         <div>
             <x-input-label for="email" value="Correo electrónico" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
+            <input type="hidden" name="email" value="{{ old('email', $request->email) }}">
+            <x-text-input id="email" class="mt-1 block w-full cursor-not-allowed bg-gray-100 dark:bg-slate-700" type="email" :value="old('email', $request->email)" disabled />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" value="Nueva contraseña" />
+            <x-input-label for="password" value="Nueva contraseña" required />
             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirmar contraseña" />
+            <x-input-label for="password_confirmation" value="Confirmar contraseña" required />
 
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
                                 type="password"

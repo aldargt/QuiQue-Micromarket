@@ -75,6 +75,27 @@ class ProductManagementTest extends TestCase
         $this->assertTrue($product->is_active);
     }
 
+    public function test_create_form_offers_camera_scanner_without_changing_the_barcode_field_or_edit_form(): void
+    {
+        $user = $this->administrator();
+
+        $this->actingAs($user)->get(route('products.create'))
+            ->assertOk()
+            ->assertSee('data-barcode-scanner-open', false)
+            ->assertSee('data-barcode-scanner-modal', false)
+            ->assertSee('Escanear código')
+            ->assertSee('id="barcode"', false)
+            ->assertSee('name="barcode"', false)
+            ->assertSee('type="text"', false)
+            ->assertSee('inputmode="numeric"', false)
+            ->assertSee('maxlength="14"', false);
+
+        $this->actingAs($user)->get(route('products.edit', $this->product()))
+            ->assertOk()
+            ->assertDontSee('data-barcode-scanner-open', false)
+            ->assertDontSee('data-barcode-scanner-modal', false);
+    }
+
     public function test_products_without_barcode_receive_unique_stable_internal_codes(): void
     {
         $user = $this->administrator();
@@ -143,7 +164,7 @@ class ProductManagementTest extends TestCase
         $this->assertFalse($inactive->fresh()->is_active);
     }
 
-    public function test_cashier_can_edit_only_prices_and_malicious_structural_fields_do_not_change(): void
+    public function test_cashier_can_edit_prices_expiration_and_minimum_stock_but_structural_fields_do_not_change(): void
     {
         $product = $this->product(['stock' => 12.5]);
         $otherBranch = Branch::factory()->create();
@@ -152,6 +173,8 @@ class ProductManagementTest extends TestCase
             ...$this->validData(),
             'name' => 'Producto actualizado',
             'sale_price' => '25.50',
+            'minimum_stock' => '4.500',
+            'expires_at' => '2028-03-15',
             'stock' => '999',
             'branch_id' => $otherBranch->id,
             'internal_code' => 'CAMBIO-NO-PERMITIDO',
@@ -161,6 +184,8 @@ class ProductManagementTest extends TestCase
         $this->assertNotSame('Producto actualizado', $product->name);
         $this->assertSame($this->validData()['purchase_price'], $product->purchase_price);
         $this->assertSame('25.50', $product->sale_price);
+        $this->assertSame('4.500', $product->minimum_stock);
+        $this->assertSame('2028-03-15', $product->expires_at->format('Y-m-d'));
         $this->assertSame('12.500', $product->stock);
         $this->assertSame($this->branch->id, $product->branch_id);
         $this->assertNotSame('CAMBIO-NO-PERMITIDO', $product->internal_code);

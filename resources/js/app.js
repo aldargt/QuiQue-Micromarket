@@ -1,4 +1,5 @@
 import './bootstrap';
+import './product-barcode-scanner';
 
 import Alpine from 'alpinejs';
 

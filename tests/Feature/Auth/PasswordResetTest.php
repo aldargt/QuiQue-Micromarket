@@ -94,10 +94,16 @@ class PasswordResetTest extends TestCase
 
         $this->post('/forgot-password', ['email' => $user->email]);
 
-        Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
+        Notification::assertSentTo($user, ResetPasswordNotification::class, function ($notification) use ($user) {
+            $response = $this->get('/reset-password/'.$notification->token.'?email='.urlencode($user->email));
 
-            $response->assertStatus(200);
+            $response->assertStatus(200)
+                ->assertSee('type="hidden" name="email" value="'.$user->email.'"', false)
+                ->assertSee('id="email"', false)
+                ->assertSee('disabled', false)
+                ->assertSee('Nueva contraseña')
+                ->assertSee('Confirmar contraseña');
+            $this->assertSame(2, substr_count($response->getContent(), '(obligatorio)'));
 
             return true;
         });
